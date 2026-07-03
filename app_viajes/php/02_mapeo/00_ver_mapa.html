@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitor de Recorrido GPS</title>
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="estilos_mapa.css" />
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f7f6;
+        }
+        .container {
+            max-width: 1100px;
+            margin: auto;
+        }
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 15px;
+            border-radius: 8px 8px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        #map {
+            height: 650px;
+            width: 100%;
+            border: 2px solid #2c3e50;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .info-panel {
+            background: white;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            font-size: 14px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            display: flex;
+            gap: 20px;
+        }
+        .status-pill {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            color: white;
+            text-transform: uppercase;
+            font-size: 11px;
+        }
+
+        /* COLORES POR ESTADO */
+        .activo { background: #27ae60; }
+        .inactivo { background: #e74c3c; }
+        .detenido { background: #f1c40f; color: #000; }
+
+        /* Tooltip dinámico */
+        .tooltip-activo {
+            background-color: #27ae60;
+            border: 2px solid #27ae60;
+            color: white;
+        }
+        .tooltip-inactivo {
+            background-color: #e74c3c;
+            border: 2px solid #e74c3c;
+            color: white;
+        }
+        .tooltip-detenido {
+            background-color: #f1c40f;
+            border: 2px solid #f1c40f;
+            color: black;
+        }
+
+        .leaflet-tooltip {
+            border-radius: 5px;
+            padding: 3px 10px;
+            font-weight: bold;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h2 style="margin:0;">📡 Monitor de Flota Personal</h2>
+        <div id="user-display">Iniciando...</div>
+    </div>
+    
+    <div class="info-panel">
+        <div><strong>👤 Usuario:</strong> <span id="lbl-usuario">---</span></div>
+        <div><strong>⏰ Última Actualización:</strong> <span id="lbl-fecha">---</span></div>
+        <div><strong>✅ Estado:</strong> <span class="status-pill" id="lbl-status">Esperando...</span></div>
+    </div>
+
+    <div id="map"></div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+    let markerActual = null;
+    
+    const iconoVerde = new L.Icon({
+    iconUrl: 'https://maps.google.com/mapfiles/ms/icons/green-dot.png',
+    iconSize: [32, 32],
+    iconAnchor: [16, 32]
+});
+
+const iconoRojo = new L.Icon({
+    iconUrl: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png',
+    iconSize: [32, 32],
+    iconAnchor: [16, 32]
+});
+
+const iconoAmarillo = new L.Icon({
+    iconUrl: 'https://maps.google.com/mapfiles/ms/icons/yellow-dot.png',
+    iconSize: [32, 32],
+    iconAnchor: [16, 32]
+});
+    
+const map = L.map('map').setView([-34.60, -58.38], 13);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap'
+}).addTo(map);
+
+let polyline;
+let markers = [];
+
+const usuarioIdFiltro = "Chofer_01"; // o dinámico
+
+async function cargarRecorrido() {
+    try {
+        const res = await fetch(`http://localhost/app_viajes/php/01_mapeo/obtener_recorrido.php?usuario_id=${usuarioIdFiltro}`);
+        const data = await res.json();
+
+        console.log("DATA:", data);
+
+       // SOLO limpiar si hay datos nuevos
+        if (data.length > 0) {
+            markers.forEach(m => map.removeLayer(m));
+        markers = [];
+}
+
+        if (polyline) {
+            map.removeLayer(polyline);
+        }
+
+        let coordenadas = [];
+
+      data.forEach((v, index) => {
+    const lat = parseFloat(v.lat);
+    const lng = parseFloat(v.lng);
+
+    if (isNaN(lat) || isNaN(lng)) return;
+
+    coordenadas.push([lat, lng]);
+
+    // 👉 SOLO el último punto muestra el estado
+    if (index === data.length - 1) {
+
+        let icono;
+
+        if (v.status === 'activo') {
+            icono = iconoVerde;
+        } else if (v.status === 'inactivo') {
+            icono = iconoRojo;
+        } else {
+            icono = iconoAmarillo;
+        }
+
+        const marker = L.marker([lat, lng], { icon: icono })
+            .addTo(map)
+            .bindPopup(`🚗 ${v.usuario_id}<br>Estado: ${v.status}`);
+
+        markers.push(marker);
+
+        // 🔄 actualizar panel superior
+        document.getElementById("lbl-usuario").innerText = v.usuario_id;
+        document.getElementById("lbl-fecha").innerText = v.fecha_registro;
+
+        const lblStatus = document.getElementById("lbl-status");
+        lblStatus.innerText = v.status;
+        lblStatus.className = "status-pill " + v.status;
+    }
+});
+
+        // dibujar recorrido
+        if (coordenadas.length > 1) {
+            polyline = L.polyline(coordenadas, {
+                color: 'blue',
+                weight: 4
+            }).addTo(map);
+
+            map.fitBounds(polyline.getBounds());
+        } else if (coordenadas.length === 1) {
+            map.setView(coordenadas[0], 17);
+        }
+
+    } catch (e) {
+        console.error("Error:", e);
+    }
+}
+
+// primera carga
+cargarRecorrido();
+
+// refresco automático
+setInterval(cargarRecorrido, 5000);
+</script>
+
+
+
+</body>
+</html>

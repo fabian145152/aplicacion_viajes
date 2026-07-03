@@ -1,0 +1,288 @@
+/* ============================= */
+/* VARIABLES */
+/* ============================= */
+:root {
+    --primary: #3498db;
+    --success: #2ecc71;
+    --warning: #f1c40f;
+    --danger: #e74c3c;
+    --dark: #2c3e50;
+    --gray: #7f8c8d;
+    --bg: #f4f6f9;
+}
+
+/* RESET */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: var(--bg);
+}
+
+/* CONTENEDOR */
+.container {
+    width: 95%;
+    max-width: 1200px;
+    margin: 30px auto;
+}
+
+/* TITULOS */
+h2, h3 {
+    margin-bottom: 15px;
+    color: var(--dark);
+}
+
+.text-center {
+    text-align: center;
+}
+
+/* CARD */
+.card {
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* FILTROS */
+.filtros {
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.filtros a {
+    color: var(--primary);
+    font-weight: bold;
+    text-decoration: none;
+}
+
+/* BOTONES */
+.btn {
+    display: inline-block;
+    padding: 8px 12px;
+    border-radius: 6px;
+    text-decoration: none;
+    color: #fff;
+    font-size: 13px;
+}
+
+.btn-success { background: var(--success); }
+.btn-warning { background: var(--warning); }
+.btn-danger  { background: var(--danger); }
+.btn-gray    { background: var(--gray); }
+
+/* FORM */
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+input, select {
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+}
+
+/* TABLA */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table thead {
+    background: var(--dark);
+    color: white;
+}
+
+.table th, .table td {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+.table tr:hover {
+    background: #f2f2f2;
+}
+
+/* BADGES */
+.badge {
+    padding: 5px 8px;
+    border-radius: 6px;
+    color: #fff;
+    font-size: 12px;
+}
+
+.badge-success { background: var(--success); }
+.badge-danger  { background: var(--danger); }
+.badge-primary { background: var(--primary); }
+
+/* ============================= */
+/* LAYOUT 2 COLUMNAS */
+/* ============================= */
+
+.operadores-layout {
+    display: grid;
+    grid-template-columns: 200px 1fr !important; /* Usar con precaución */
+    gap: 25px;
+    align-items: start;
+}
+.col-form {
+    background: #fafafa;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #eee;
+    position: sticky;
+    top: 20px;
+}
+
+.col-tabla {
+    overflow-x: auto;
+}
+
+/* ============================= */
+/* RESPONSIVE */
+/* ============================= */
+@media (max-width: 900px) {
+    .operadores-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .col-form {
+        position: static;
+    }
+}
+
+/* ============================= */
+/* SIDEBAR */
+/* ============================= */
+.sidebar {
+    width: 220px;
+    height: 100vh;
+    background: #2c3e50;
+    color: white;
+    position: fixed;
+    top: 0;
+    left: 0;
+    padding: 20px;
+}
+
+.sidebar h3 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.sidebar ul {
+    list-style: none;
+}
+
+.sidebar li {
+    margin-bottom: 10px;
+}
+
+.sidebar a {
+    display: block;
+    padding: 10px;
+    border-radius: 6px;
+    color: white;
+    text-decoration: none;
+}
+
+.sidebar a:hover {
+    background: #34495e;
+}
+
+/* CONTENIDO DESPLAZADO */
+.main-content {
+    margin-left: 240px;
+    padding: 20px;
+}
+
+
+/* ============================= */
+/* ESTILOS ESPECÍFICOS AGREGADOR */   
+/* ============================= */
+
+/* CONTENEDOR GENERAL */
+.container {
+    max-width: 1200px;
+    margin: 40px auto;
+}
+
+/* LAYOUT DOS COLUMNAS */
+.operadores-layout {
+    display: grid;
+    grid-template-columns: 320px 1fr; /* izquierda fija, derecha flexible */
+    gap: 25px;
+    align-items: start;
+}
+
+/* FORMULARIO */
+.col-form {
+    background: #f9f9f9;
+    padding: 15px;
+    border-radius: 10px;
+}
+
+/* TABLA */
+.col-tabla {
+    width: 100%;
+}
+
+/* TABLA AJUSTE */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+/* CELDAS */
+.table th,
+.table td {
+    padding: 10px;
+    text-align: left;
+}
+
+/* BOTONES EN FILA */
+.table td:last-child {
+    display: flex;
+    gap: 5px;
+    justify-content: center;
+    align-items: center;
+}
+
+/* BADGES */
+.badge {
+    display: inline-block;
+    padding: 5px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+}
+
+/* ============================= */
+/* TABLAS COMPACTAS */
+/* ============================= */
+
+.table {
+    font-size: 12px;
+}
+
+.table th,
+.table td {
+    padding: 6px 8px;
+    line-height: 1.2;
+}
+
+/* BOTONES DENTRO DE TABLA */
+.table .btn {
+    font-size: 11px;
+    padding: 5px 8px;
+}
+
+/* BADGES MÁS CHICOS EN TABLAS */
+.table .badge {
+    font-size: 11px;
+    padding: 3px 6px;
+}

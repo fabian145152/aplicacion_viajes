@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitor GPS</title>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+    <style>
+        body { font-family: Arial; margin: 0; padding: 20px; background: #f4f7f6; }
+        .container { max-width: 1100px; margin: auto; }
+        .header { background: #2c3e50; color: white; padding: 15px; border-radius: 8px 8px 0 0; }
+        #map { height: 650px; border: 2px solid #2c3e50; border-top: none; }
+        .info-panel { background: white; padding: 10px; margin-bottom: 10px; border-radius: 8px; display: flex; gap: 20px; }
+        .status-pill { padding: 5px 12px; border-radius: 20px; color: white; font-weight: bold; }
+
+        .activo { background: #27ae60; }
+        .inactivo { background: #e74c3c; }
+        .offline { background: #7f8c8d; }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+    <div class="header">
+        <h3>📡 Monitor GPS</h3>
+    </div>
+
+    <div class="info-panel">
+        <div>👤 <span id="lbl-usuario">---</span></div>
+        <div>⏰ <span id="lbl-fecha">---</span></div>
+        <div><span id="lbl-status" class="status-pill">---</span></div>
+    </div>
+
+    <div id="map"></div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+// ================== CONFIG ==================
+const URL_API = "http://192.168.0.225/app_viajes/php/01_mapeo/obtener_recorrido.php";
+// ⚠️ IMPORTANTE: que coincida con Flutter
+const usuarioIdFiltro = "usuario1"; 
+
+// ================== ICONOS ==================
+const iconoVerde = new L.Icon({
+    iconUrl: 'https://maps.google.com/mapfiles/ms/icons/green-dot.png',
+    iconSize: [32, 32],
+    iconAnchor: [16, 32]
+});
+
+const iconoRojo = new L.Icon({
+    iconUrl: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png',
+    iconSize: [32, 32],
+    iconAnchor: [16, 32]
+});
+
+const iconoGris = new L.Icon({
+    iconUrl: 'https://maps.google.com/mapfiles/ms/icons/grey-dot.png',
+    iconSize: [32, 32],
+    iconAnchor: [16, 32]
+});
+
+// ================== MAPA ==================
+const map = L.map('map').setView([-34.60, -58.38], 13);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap'
+}).addTo(map);
+
+// ================== VARIABLES ==================
+let polyline;
+let markerActual = null;
+let ultimaData = [];
+
+// ================== FUNCION ==================
+async function cargarRecorrido() {
+    try {
+        const url = `${URL_API}?usuario_id=${usuarioIdFiltro}`;
+        console.log("Fetching:", url);
+
+        const res = await fetch(url);
+        const data = await res.json();
+
+        console.log("DATA:", data);
+
+        if (Array.isArray(data) && data.length > 0) {
+            ultimaData = data;
+        }
+
+        if (ultimaData.length === 0) {
+            console.warn("Sin datos");
+            return;
+        }
+
+        let coordenadas = [];
+
+        ultimaData.forEach((v, index) => {
+            const lat = parseFloat(v.lat);
+            const lng = parseFloat(v.lng);
+
+            if (isNaN(lat) || isNaN(lng)) return;
+
+            coordenadas.push([lat, lng]);
+
+            // SOLO último punto
+            if (index === ultimaData.length - 1) {
+
+                const ahora = new Date();
+                const fechaDato = v.fecha_registro ? new Date(v.fecha_registro) : new Date();
+                const diff = (ahora - fechaDato) / 1000;
+
+                let estadoFinal;
+                let icono;
+
+                if (diff > 15) {
+                    estadoFinal = "offline";
+                    icono = iconoGris;
+                } else {
+                    estadoFinal = "activo";
+                    icono = iconoVerde;
+                }
+
+                const usuario = v.user_id || v.usuario_id || "N/A";
+
+                // MARCADOR
+                if (markerActual) {
+                    markerActual.setLatLng([lat, lng]);
+                    markerActual.setIcon(icono);
+                } else {
+                    markerActual = L.marker([lat, lng], { icon: icono }).addTo(map);
+                }
+
+                markerActual.bindPopup(`🚗 ${usuario}<br>Estado: ${estadoFinal}`);
+
+                // PANEL
+                document.getElementById("lbl-usuario").innerText = usuario;
+                document.getElementById("lbl-fecha").innerText = fechaDato.toLocaleString();
+
+                const lbl = document.getElementById("lbl-status");
+                lbl.innerText = estadoFinal;
+                lbl.className = "status-pill " + estadoFinal;
+            }
+        });
+
+        // LINEA
+        if (polyline) map.removeLayer(polyline);
+
+        if (coordenadas.length > 1) {
+            polyline = L.polyline(coordenadas, { color: 'blue' }).addTo(map);
+            map.fitBounds(polyline.getBounds());
+        } else if (coordenadas.length === 1) {
+            map.setView(coordenadas[0], 17);
+        }
+
+    } catch (e) {
+        console.error("ERROR:", e);
+    }
+}
+
+// ================== LOOP ==================
+cargarRecorrido();
+setInterval(cargarRecorrido, 5000);
+
+</script>
+
+</body>
+</html>

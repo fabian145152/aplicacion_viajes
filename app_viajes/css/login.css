@@ -1,0 +1,18 @@
+form {
+            width: 80%;
+            border-collapse: collapse;
+            margin: 20px auto;
+            font-family: Arial, sans-serif;
+        }
+
+        input {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+
+        button {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }

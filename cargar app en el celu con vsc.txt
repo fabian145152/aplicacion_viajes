@@ -1,0 +1,20 @@
+ir a:
+android/app/src/main/AndroidManifest.xml
+
+en la linea 6 cambio en nombre que va a aparecer en el celu cuando cargo la app
+
+conecto el celu con VISOR
+
+abro un terminal y escribo
+flutter devices.
+y me tiene que aparecer el celular que tengo cenectado
+
+ejecutar flutter run
+
+la apk para instalar hay que crearla
+flutter build apk --debug     //version de prueba
+
+flutter build apk --release   //es la version de produccion
+ y se ubica en:
+[tu_proyecto]/build/app/outputs/flutter-apk/app-release.apk
+
