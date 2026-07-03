@@ -156,7 +156,7 @@ usort($viajes, function ($a, $b) {
                 <a href="?estado=pendiente" style="background: #fff3cd; color:#000;">Pendientes (<?= $contadores['pendiente'] ?>)</a>
                 <a href="?estado=asignado" style="background: #d1ecf1; color:#000;">Asignados (<?= $contadores['asignado'] ?>)</a>
 
-                <a href="?estado=en curso" style="background: #d4edda; color:#000;">En curso (<?= $contadores['en curso'] ?>)</a>
+                <a href="?estado=en curso" style="background: #d4edda; color:#000;">P. a bordo (<?= $contadores['en curso'] ?>)</a>
                 <a href="?estado=diferido" style="background: #e2d6c3; color:#000;">Diferidos (<?= $contadores['diferido'] ?>)</a>
                 <a href="?estado=completado" style="background: #d6e9ff; color:#000;">Completados (<?= $contadores['completado'] ?>)</a>
                 <a href="?estado=cancelado" style="background: #f8d7da; color:#000;">Cancelados (<?= $contadores['cancelado'] ?>)</a>
@@ -218,11 +218,10 @@ usort($viajes, function ($a, $b) {
 
                             <tr style="background-color: <?= $fondo ?>;">
                                 <td>
-                                    <select name="acciones_viaje" onchange="evaluarAccion(this, <?= $v['id'] ?>)">
-                                        <option disabled selected>Opciones</option>
-                                        <option value="cerrar_en_base">Cerrar en base</option>
-                                        <option value="asignar_movil">Asignar móvil</option>
-                                        <option value="cancelar_viaje">Cancelar viaje</option>
+                                    <select name="acciones_viaje" class="select-acciones" style="font-size: 11px; padding: 2px 4px; height: 22px; width: auto; min-width: 100px;" onchange="evaluarAccion(this, <?= $v['id'] ?>)">
+                                        <option value="" disabled selected>Opciones</option>
+                                        <option value="asignar_movil">Asignar Móvil</option>
+                                        <option value="cancelar_viaje">Cancelar Viaje</option>
                                     </select>
                                 </td>
                                 <td><?= $v['id'] ?></td>

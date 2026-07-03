@@ -46,6 +46,8 @@ $nombre_completo = $row['nom_apellido'] ?? '';
         <br>
         <li><a href="01_mapeo/mapa_de_viajes.php" target="_blank">MAPA DE VIAJES</a></li>
         <li><a href="01_mapeo/ver_mapa.php" target="_blank">MAPA DE UNIDADES TRABAJANDO</a></li>
+        <li><a href="01_mapeo/ubicaciones_actuales.php" target="_blank">UBICACIONES ACTUALES</a></li>
+
         <br>
         <li>Programas de muestreo</li>
         <li><a href="../backup.php" target="_blank">BACKUP</a></li>
