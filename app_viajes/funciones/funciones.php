@@ -621,10 +621,13 @@ function obtenerViajes()
 
     $sql = "SELECT
                 vd.*,
-                ce.razon_social AS empresa
+                ce.razon_social AS empresa,
+                ch.movil AS numero_movil -- 👈 Traemos el número de móvil asignado
             FROM viajes_despacho vd
             LEFT JOIN cuenta_empresa ce
                 ON vd.cc = ce.id
+            LEFT JOIN choferes ch
+                ON vd.id_chofer = ch.id -- 👈 Unimos con la tabla choferes
             ORDER BY
                 CASE WHEN vd.diferido = 'No' THEN 0 ELSE 1 END,
                 CASE WHEN vd.diferido = 'No' THEN vd.id END ASC,

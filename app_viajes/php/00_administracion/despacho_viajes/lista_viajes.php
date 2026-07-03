@@ -155,6 +155,7 @@ usort($viajes, function ($a, $b) {
                 <a href="?estado=inmediato" style="background: #e2e3e5; color:#000;">Inmediatos (<?= $contadores['inmediato'] ?>)</a>
                 <a href="?estado=pendiente" style="background: #fff3cd; color:#000;">Pendientes (<?= $contadores['pendiente'] ?>)</a>
                 <a href="?estado=asignado" style="background: #d1ecf1; color:#000;">Asignados (<?= $contadores['asignado'] ?>)</a>
+
                 <a href="?estado=en curso" style="background: #d4edda; color:#000;">En curso (<?= $contadores['en curso'] ?>)</a>
                 <a href="?estado=diferido" style="background: #e2d6c3; color:#000;">Diferidos (<?= $contadores['diferido'] ?>)</a>
                 <a href="?estado=completado" style="background: #d6e9ff; color:#000;">Completados (<?= $contadores['completado'] ?>)</a>
@@ -167,6 +168,7 @@ usort($viajes, function ($a, $b) {
                         <tr>
                             <th>Acciones</th>
                             <th>N° viaje</th>
+                            <th>Movil</th>
                             <th>Pasajero</th>
                             <th>Celular</th>
                             <th>Origen</th>
@@ -224,10 +226,27 @@ usort($viajes, function ($a, $b) {
                                     </select>
                                 </td>
                                 <td><?= $v['id'] ?></td>
+
+                                <td style="text-align: center; font-weight: bold;">
+                                    <?php
+                                    // SOLO si el filtro actual es 'asignado' y el viaje tiene número de móvil, mostramos el recuadro azul
+                                    if (strtolower($filtro) === 'asignado' && !empty($v['numero_movil'])):
+                                    ?>
+                                        <span style="background-color: #007bff; color: white; padding: 3px 8px; border-radius: 4px; font-size: 13px;">
+                                            M-<?= htmlspecialchars($v['numero_movil']) ?>
+                                        </span>
+                                    <?php else: ?>
+                                        <span style="color: #999; font-style: italic; font-weight: normal;">-</span>
+                                    <?php endif; ?>
+                                </td>
+
                                 <td><?= htmlspecialchars($v['nombre_pasaj']) ?></td>
+
                                 <td><?= htmlspecialchars($v['cel_pasaj']) ?></td>
                                 <td><?= htmlspecialchars($v['direccion_origen']) ?></td>
                                 <td><?= htmlspecialchars($v['direccion_destino']) ?></td>
+
+
                                 <td class="col-observaciones"><?= htmlspecialchars($v['obs_operador']) ?></td>
                                 <td class="col-observaciones"><?= htmlspecialchars($v['obs_pasaj']) ?></td>
                                 <td>
@@ -270,6 +289,8 @@ usort($viajes, function ($a, $b) {
 
                                 <td><?= ($v['fecha'] === '0000-00-00' || empty($v['fecha'])) ? '' : htmlspecialchars($v['fecha']) ?></td>
                                 <td><?= empty($v['hora']) ? '' : htmlspecialchars($v['hora']) ?></td>
+
+
                                 <td><?= htmlspecialchars($v['categoria_movil']) ?></td>
                                 <td style="text-align:center;">
                                     <?php $gps_ok = ($v['origen_lat'] < 0) && ($v['origen_lng'] < 0); ?>
