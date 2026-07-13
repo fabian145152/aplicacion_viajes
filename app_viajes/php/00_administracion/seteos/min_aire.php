@@ -32,7 +32,7 @@ include_once "minutos.php";
 
 <body>
     <div class="main-wrapper">
-        <h1>AJUSTES DE TEMPORIZADORES</h1>
+        <h1>AJUSTES DE TEMPORIZADORES pasado este tiempo de emitido el viaje, aparece un alerta para los operadores</h1>
 
         <div class="columnas-container">
 

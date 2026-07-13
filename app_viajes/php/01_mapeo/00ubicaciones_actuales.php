@@ -6,8 +6,8 @@ protegerPagina([0, 3]);
 
 $con = conexion();
 
-// CONSULTA DEFINITIVA: Trae la última ubicación y se une con choferes por móvil (no por id)
-$sql = "SELECT u.user_id, u.lat, u.lng, u.fecha, u.device_id AS status_unidad, us.nombre AS nombre_chofer, us.apellido AS apellido_chofer
+// CONSULTA DEFINITIVA: Trae la última ubicación y se une con usuarios para obtener el nombre completo
+$sql = "SELECT u.user_id, u.lat, u.lng, u.fecha, u.device_id AS status_unidad, us.nombre AS nombre_chofer
 FROM ubicaciones u
 INNER JOIN choferes us ON u.user_id = us.movil
 WHERE u.id IN (SELECT MAX(id) FROM ubicaciones GROUP BY user_id)
@@ -44,29 +44,8 @@ $unidades = $stmt->fetchAll(PDO::FETCH_ASSOC);
             background: #f8f9fa;
             border-bottom: 1px solid #dee2e6;
             display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .topbar-fila1 {
-            display: flex;
             gap: 10px;
             align-items: center;
-        }
-
-        .btn-salir {
-            margin-left: auto;
-            padding: 6px 14px;
-            background: #dc3545;
-            color: white;
-            text-decoration: none;
-            border-radius: 4px;
-            font-size: 13px;
-            font-weight: bold;
-        }
-
-        .btn-salir:hover {
-            background: #c82333;
         }
 
         .topbar select {
@@ -94,60 +73,21 @@ $unidades = $stmt->fetchAll(PDO::FETCH_ASSOC);
             justify-content: center;
             font-size: 12px;
         }
-
-        .leyenda {
-            display: flex;
-            gap: 16px;
-            align-items: center;
-            justify-content: flex-end;
-            padding-top: 8px;
-            border-top: 1px solid #dee2e6;
-        }
-
-        .leyenda-item {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 13px;
-            color: #495057;
-        }
-
-        .leyenda-punto {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            display: inline-block;
-            border: 1px solid rgba(0, 0, 0, 0.2);
-        }
     </style>
 </head>
 
 <body>
 
     <div class="topbar">
-        <div class="topbar-fila1">
-            <label for="select-usuario"><b>Buscar Unidad / Chofer:</b></label>
-            <select id="select-usuario">
-                <option value="todos">-- Ver todos --</option>
-                <?php foreach ($unidades as $u): ?>
-                    <option value="<?php echo $u['user_id']; ?>">
-                        ID: <?php echo $u['user_id']; ?> - <?php echo htmlspecialchars($u['nombre_chofer'] . ' ' . $u['apellido_chofer']); ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
-            <a href="../inicio_0.php" class="btn-salir">SALIR</a>
-        </div>
-        <div class="leyenda">
-            <div class="leyenda-item">
-                <span class="leyenda-punto" style="background:#28a745;"></span> Activo
-            </div>
-            <div class="leyenda-item">
-                <span class="leyenda-punto" style="background:#dc3545;"></span> Inactivo
-            </div>
-            <div class="leyenda-item">
-                <span class="leyenda-punto" style="background:#6c757d;"></span> Desconocido
-            </div>
-        </div>
+        <label for="select-usuario"><b>Buscar Unidad / Chofer:</b></label>
+        <select id="select-usuario">
+            <option value="todos">-- Ver todos --</option>
+            <?php foreach ($unidades as $u): ?>
+                <option value="<?php echo $u['user_id']; ?>">
+                    ID: <?php echo $u['user_id']; ?> - <?php echo htmlspecialchars($u['nombre_chofer']); ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
     </div>
 
     <div id="map"></div>
@@ -173,9 +113,8 @@ $unidades = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             if (isNaN(lat) || isNaN(lng)) return;
 
-            // Color según estado de la unidad: verde = activo, rojo = inactivo, gris = desconocido
             const color = u.status_unidad === 'activo' ? '#28a745' : (u.status_unidad === 'inactivo' ? '#dc3545' : '#6c757d');
-            const nombreCompleto = (u.nombre_chofer || "Sin Nombre") + (u.apellido_chofer ? " " + u.apellido_chofer : "");
+            const nombreCompleto = u.nombre_chofer || "Sin Nombre";
             const etiquetaCorta = u.user_id;
 
             const marker = L.marker([lat, lng], {
@@ -194,7 +133,6 @@ $unidades = $stmt->fetchAll(PDO::FETCH_ASSOC);
             marker.bindPopup(`
                 <b>Unidad / Chofer:</b> ${nombreCompleto}<br>
                 <b>ID Móvil:</b> ${u.user_id}<br>
-                <b>Estado:</b> ${u.status_unidad || 'Desconocido'}<br>
                 <hr style="border:0; border-top:1px solid #eee; margin: 5px 0;">
                 <b>Último Reporte:</b><br>
                 Fecha: ${u.fecha}<br>

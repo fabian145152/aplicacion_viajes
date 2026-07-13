@@ -55,41 +55,4 @@
         }
         document.addEventListener('DOMContentLoaded', iniciarReloj);
 
-        // AVISO DE VIAJES VENCIDOS (pasó fecha/hora programada + minutos de tolerancia, y sigue sin completar/cancelar)
-        // Se repite cada 5 minutos mientras el viaje siga vencido (la página ya se recarga sola cada 30s por el meta refresh)
-        function avisarNuevosVencidos(idsVencidosActuales) {
-            const clave = 'viajes_vencidos_avisados';
-            const INTERVALO_REAVISO_MS = 5 * 60 * 1000; // 5 minutos
-            const ahora = Date.now();
-            let avisados = {};
-
-            try {
-                avisados = JSON.parse(localStorage.getItem(clave)) || {};
-            } catch (e) {
-                avisados = {};
-            }
-
-            const paraAvisar = [];
-            const nuevosAvisados = {};
-
-            idsVencidosActuales.forEach(id => {
-                const ultimoAviso = avisados[id];
-                if (!ultimoAviso || (ahora - ultimoAviso) >= INTERVALO_REAVISO_MS) {
-                    paraAvisar.push(id);
-                    nuevosAvisados[id] = ahora; // arranca de nuevo la cuenta de 5 minutos
-                } else {
-                    nuevosAvisados[id] = ultimoAviso; // todavía no pasaron los 5 min, se mantiene el timestamp original
-                }
-            });
-            // Los que ya no están vencidos (se asignaron/completaron/cancelaron) se descartan solos, no se copian a nuevosAvisados
-
-            if (paraAvisar.length === 1) {
-                alert('El viaje N° ' + paraAvisar[0] + ' superó el tiempo configurado desde su hora programada y sigue sin asignar/completar.');
-            } else if (paraAvisar.length > 1) {
-                alert('Los siguientes viajes superaron el tiempo configurado desde su hora programada y siguen sin asignar/completar:\n' + paraAvisar.join(', '));
-            }
-
-            localStorage.setItem(clave, JSON.stringify(nuevosAvisados));
-        }
-
         

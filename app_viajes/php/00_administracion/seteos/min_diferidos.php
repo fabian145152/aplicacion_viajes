@@ -32,7 +32,7 @@ include_once "minutos.php";
 
 <body>
     <div class="main-wrapper">
-        <h1>AJUSTES DE TEMPORIZADORES</h1>
+        <h1>AJUSTES DE TEMPORIZADORES (Es el tiempo anterior a la hora actual para que aparezca el viaje como inmediato)</h1>
 
         <div class="columnas-container">
 

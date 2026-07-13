@@ -11,7 +11,6 @@ include_once "../seteos/min_diferido.php";
 
 echo "Minutos Diferido: " . $min_diferido . "<br>";
 
-$minutosConfigurados = $min_diferido; // valor original, para el aviso de viajes vencidos
 $min_diferido = $min_diferido - 1;
 
 
@@ -124,32 +123,6 @@ usort($viajes, function ($a, $b) {
 
     return $b['id'] <=> $a['id'];
 });
-
-/* IDs de viajes VENCIDOS: ya pasó su fecha/hora programada por más minutos
-   de los configurados en el ajuste de temporizador, y todavía no fueron
-   completados ni cancelados (para el aviso por JS) */
-$idsVencidos = [];
-foreach ($todosLosViajes as $v) {
-    $estado = strtolower(trim($v['estado']));
-
-    if (in_array($estado, ['completado', 'cancelado'])) {
-        continue;
-    }
-    if (empty($v['fecha']) || $v['fecha'] === '0000-00-00' || empty($v['hora'])) {
-        continue;
-    }
-
-    $fechaHora = strtotime($v['fecha'] . ' ' . $v['hora']);
-    if ($fechaHora === false) {
-        continue;
-    }
-
-    $minutosPasados = (time() - $fechaHora) / 60;
-
-    if ($minutosPasados > $minutosConfigurados) {
-        $idsVencidos[] = (int)$v['id'];
-    }
-}
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -383,11 +356,10 @@ foreach ($todosLosViajes as $v) {
         </div>
     </div>
 
-    <script src="lista_viajes.js"></script>
     <script>
-        const idsVencidosActuales = <?= json_encode($idsVencidos) ?>;
-        avisarNuevosVencidos(idsVencidosActuales);
+
     </script>
+    <script src="lista_viajes.js"></script>
 </body>
 
 </html>

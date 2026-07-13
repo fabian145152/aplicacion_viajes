@@ -44,29 +44,8 @@ $unidades = $stmt->fetchAll(PDO::FETCH_ASSOC);
             background: #f8f9fa;
             border-bottom: 1px solid #dee2e6;
             display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .topbar-fila1 {
-            display: flex;
             gap: 10px;
             align-items: center;
-        }
-
-        .btn-salir {
-            margin-left: auto;
-            padding: 6px 14px;
-            background: #dc3545;
-            color: white;
-            text-decoration: none;
-            border-radius: 4px;
-            font-size: 13px;
-            font-weight: bold;
-        }
-
-        .btn-salir:hover {
-            background: #c82333;
         }
 
         .topbar select {
@@ -97,11 +76,11 @@ $unidades = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         .leyenda {
             display: flex;
-            gap: 16px;
+            gap: 12px;
             align-items: center;
-            justify-content: flex-end;
-            padding-top: 8px;
-            border-top: 1px solid #dee2e6;
+            margin-right: 10px;
+            padding-right: 10px;
+            border-right: 1px solid #dee2e6;
         }
 
         .leyenda-item {
@@ -109,7 +88,6 @@ $unidades = $stmt->fetchAll(PDO::FETCH_ASSOC);
             align-items: center;
             gap: 5px;
             font-size: 13px;
-            color: #495057;
         }
 
         .leyenda-punto {
@@ -125,18 +103,6 @@ $unidades = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <body>
 
     <div class="topbar">
-        <div class="topbar-fila1">
-            <label for="select-usuario"><b>Buscar Unidad / Chofer:</b></label>
-            <select id="select-usuario">
-                <option value="todos">-- Ver todos --</option>
-                <?php foreach ($unidades as $u): ?>
-                    <option value="<?php echo $u['user_id']; ?>">
-                        ID: <?php echo $u['user_id']; ?> - <?php echo htmlspecialchars($u['nombre_chofer'] . ' ' . $u['apellido_chofer']); ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
-            <a href="../inicio_0.php" class="btn-salir">SALIR</a>
-        </div>
         <div class="leyenda">
             <div class="leyenda-item">
                 <span class="leyenda-punto" style="background:#28a745;"></span> Activo
@@ -148,6 +114,16 @@ $unidades = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <span class="leyenda-punto" style="background:#6c757d;"></span> Desconocido
             </div>
         </div>
+        <label for="select-usuario"><b>Buscar Unidad / Chofer:</b></label>
+        <select id="select-usuario">
+            <option value="todos">-- Ver todos --</option>
+            <?php foreach ($unidades as $u): ?>
+                <option value="<?php echo $u['user_id']; ?>">
+                    ID: <?php echo $u['user_id']; ?> - <?php echo htmlspecialchars($u['nombre_chofer'] . ' ' . $u['apellido_chofer']); ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
+        <a href="../inicio_0.php">SALIR</a>
     </div>
 
     <div id="map"></div>

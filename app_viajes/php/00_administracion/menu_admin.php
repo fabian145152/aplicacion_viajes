@@ -30,9 +30,9 @@ $nombre_completo = $row['nom_apellido'] ?? '';
     </div>
     <div>
         <ul>
-            <li><a href="operadores/listado.php">OPERADORES</a></li>
+            <li><a href="operadores/listado.php">OPERADORES (Crear operadores nuevos y darle permisos)</a></li>
             <br>
-            <li><a href="seteos/inicio.php">SETEOS DE TIEMPOS</a></li>
+            <li><a href="seteos/inicio.php">SETEOS DE TIEMPOS (Ajusta el tiempo de los viajes diferidos <br>&nbsp;&nbsp;&nbsp;&nbsp;y ajusta el tiempo en que los fiajes estan al aire para mandar alertas. )</a></li>
             <br>
             <li><a href="">APP PASAJEROS</a></li>
             <br>
