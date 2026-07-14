@@ -1,1 +1,15 @@
 # 00_viajes_pc
+
+crud de usuarios
+     de choferes
+     de unidades
+
+relaciona choferes con unidades por si hay cambio de unidades
+
+carga de viajes con mapas y recorrido
+
+listado de viajes con diferidos. 
+
+ajuste de tiempo para diferidos probado.
+
+trabajando con ajuste de tiempo para viaje en pantalla.
