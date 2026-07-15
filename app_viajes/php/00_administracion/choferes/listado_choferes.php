@@ -5,8 +5,14 @@ protegerPagina([0, 3]);
 
 // GUARDAR
 if (isset($_POST['guardar'])) {
-    guardarChofer($_POST);
-    header("Location: listado_choferes.php");
+    $resultado = guardarChofer($_POST);
+
+    if ($resultado === 'movil_duplicado') {
+        $idVolver = $_POST['id'] ?? '';
+        header("Location: listado_choferes.php?error=movil_duplicado" . ($idVolver ? "&editar=$idVolver" : ""));
+    } else {
+        header("Location: listado_choferes.php");
+    }
     exit;
 }
 
@@ -25,6 +31,35 @@ if (isset($_GET['editar'])) {
 
 // DATOS
 $choferes = obtenerChoferes();
+
+// FILTRO por número de móvil
+$filtroMovil = trim($_GET['movil_buscar'] ?? '');
+if ($filtroMovil !== '') {
+    $choferes = array_values(array_filter($choferes, function ($c) use ($filtroMovil) {
+        return strpos((string)($c['movil'] ?? ''), $filtroMovil) !== false;
+    }));
+}
+
+// ORDEN
+$orden = $_GET['orden'] ?? 'movil_asc';
+
+usort($choferes, function ($a, $b) use ($orden) {
+
+    switch ($orden) {
+
+        case 'movil_desc':
+            return (int)$b['movil'] <=> (int)$a['movil'];
+
+        case 'apellido_asc':
+            return strcasecmp($a['apellido'] ?? '', $b['apellido'] ?? '');
+
+        case 'apellido_desc':
+            return strcasecmp($b['apellido'] ?? '', $a['apellido'] ?? '');
+
+        default: // movil_asc
+            return (int)$a['movil'] <=> (int)$b['movil'];
+    }
+});
 ?>
 
 <!DOCTYPE html>
@@ -51,8 +86,8 @@ $choferes = obtenerChoferes();
 
                     <input type="hidden" name="id" value="<?php echo $chofer_a_editar['id'] ?? ''; ?>">
 
-                    <input type="text" name="movil" placeholder="Movil"
-                        value="<?php echo $chofer_a_editar['movil'] ?? ''; ?>" required>
+                    <input type="number" name="movil" placeholder="Movil"
+                        value="<?php echo $chofer_a_editar['movil'] ?? ''; ?>">
 
                     <input type="text" name="nombre" placeholder="Nombre"
                         value="<?php echo $chofer_a_editar['nombre'] ?? ''; ?>" required>
@@ -91,6 +126,23 @@ $choferes = obtenerChoferes();
 
             <!-- TABLA -->
             <div class="col-tabla">
+
+                <form method="GET" class="filtros" style="display:flex; flex-direction:row; gap:6px; align-items:center; justify-content:flex-start; margin-bottom:15px; flex-wrap:nowrap;">
+                    <input type="text" name="movil_buscar" placeholder="Buscar por N° de móvil"
+                        style="padding:5px 8px; font-size:12px; width:160px;"
+                        value="<?php echo htmlspecialchars($filtroMovil); ?>">
+
+                    <select name="orden" style="padding:5px 6px; font-size:12px;">
+                        <option value="movil_asc" <?php if ($orden === 'movil_asc') echo 'selected'; ?>>Móvil ↑</option>
+                        <option value="movil_desc" <?php if ($orden === 'movil_desc') echo 'selected'; ?>>Móvil ↓</option>
+                        <option value="apellido_asc" <?php if ($orden === 'apellido_asc') echo 'selected'; ?>>Apellido A-Z</option>
+                        <option value="apellido_desc" <?php if ($orden === 'apellido_desc') echo 'selected'; ?>>Apellido Z-A</option>
+                    </select>
+
+                    <button type="submit" class="btn btn-success" style="padding:5px 10px; font-size:12px;">Filtrar</button>
+                    <a href="listado_choferes.php" class="btn btn-gray" style="padding:5px 10px; font-size:12px;">Limpiar</a>
+                </form>
+
                 <table class="table">
                     <thead>
                         <tr>
@@ -172,6 +224,12 @@ $choferes = obtenerChoferes();
 
         </div>
     </div>
+
+    <?php if (($_GET['error'] ?? '') === 'movil_duplicado'): ?>
+        <script>
+            alert('El móvil ya existe, asignado a otro chofer. Elegí otro número.');
+        </script>
+    <?php endif; ?>
 
 </body>
 

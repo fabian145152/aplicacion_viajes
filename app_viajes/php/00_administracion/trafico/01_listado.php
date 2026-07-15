@@ -123,11 +123,10 @@ foreach ($choferes as $c) {
                 <table class="table">
                     <thead>
                         <tr>
-                            <!-- <th>ID</th> -->
+                            <th>ID</th>
                             <th>Móvil</th>
                             <th>Categoría</th>
                             <th>Marca/Modelo</th>
-                            <th>Color</th>
                             <th>Patente</th>
                             <th>Estado</th>
                             <th>Chofer</th>
@@ -139,23 +138,20 @@ foreach ($choferes as $c) {
                         <?php if (count($vehiculos) > 0): ?>
                             <?php foreach ($vehiculos as $v): ?>
                                 <tr>
-                                    <?php $v['id']; ?>
+                                    <td><?php echo $v['id']; ?></td>
                                     <td><?php echo htmlspecialchars($movilPorChofer[$v['id_chofer'] ?? null] ?? '-'); ?></td>
                                     <td><strong><?php echo htmlspecialchars($v['categoria']); ?></strong></td>
                                     <td>
                                         <?php echo htmlspecialchars($v['marca']); ?><br>
                                         <small><?php echo htmlspecialchars($v['modelo']); ?></small>
                                     </td>
-                                    <td>
-                                        <?php echo htmlspecialchars($v['color']); ?><br>
-                                        <td><strong><?php echo htmlspecialchars($v['patente']); ?></strong></td>
-                                    </td>
+                                    <td><?php echo htmlspecialchars($v['patente']); ?></td>
 
                                     <td>
                                         <?php if ($v['estado'] == 'disponible'): ?>
-                                            <span class="badge badge-warning">Libre</span>
+                                            <span class="badge badge-success">Libre</span>
                                         <?php elseif ($v['estado'] == 'con_chofer'): ?>
-                                            <span class="badge badge-success">Con Chofer</span>
+                                            <span class="badge badge-warning">Con Chofer</span>
                                         <?php else: ?>
                                             <span class="badge badge-danger">Taller</span>
                                         <?php endif; ?>

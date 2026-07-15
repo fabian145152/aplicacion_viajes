@@ -1,14 +1,27 @@
-  function evaluarAccion(selectElement, viajeId) {
-            if (selectElement.value === 'asignar_movil') {
-                document.getElementById('modal-id-viaje').textContent = viajeId;
-                document.getElementById('input-modal-viaje-id').value = viajeId;
-                document.getElementById('modalAsignar').style.display = 'block';
-            } else if (selectElement.value === 'cancelar_viaje') {
-                document.getElementById('modal-cancelar-id-viaje').textContent = viajeId;
-                document.getElementById('input-modal-cancelar-viaje-id').value = viajeId;
-                document.getElementById('modalCancelar').style.display = 'block';
-            }
+       function evaluarAccion(selectElement, viajeId) {
+
+        if (selectElement.value === 'asignar_movil') {
+
+        document.getElementById('modal-id-viaje').textContent = viajeId;
+        document.getElementById('input-modal-viaje-id').value = viajeId;
+        document.getElementById('modalAsignar').style.display = 'block';
+
+    } else if (selectElement.value === 'desasignar_movil') {
+
+        if (confirm("¿Desea desasignar el móvil de este viaje?")) {
+            window.location = "lista_viajes.php?desasignar=" + viajeId;
+        } else {
+            restablecerSelects();
         }
+
+    } else if (selectElement.value === 'cancelar_viaje') {
+
+        document.getElementById('modal-cancelar-id-viaje').textContent = viajeId;
+        document.getElementById('input-modal-cancelar-viaje-id').value = viajeId;
+        document.getElementById('modalCancelar').style.display = 'block';
+
+    }
+}
 
         function cerrarModalAsignar() {
             document.getElementById('modalAsignar').style.display = 'none';

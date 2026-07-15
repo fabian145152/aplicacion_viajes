@@ -119,7 +119,6 @@ input, select {
 .badge-success { background: var(--success); }
 .badge-danger  { background: var(--danger); }
 .badge-primary { background: var(--primary); }
-.badge-warning { background: var(--warning); color: #333; }
 
 /* ============================= */
 /* LAYOUT 2 COLUMNAS */

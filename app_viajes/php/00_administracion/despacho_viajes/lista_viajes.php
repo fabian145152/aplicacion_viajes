@@ -32,10 +32,24 @@ $stmt = $conn->prepare($sql);
 $stmt->execute([$min_diferido]);
 
 
-// BORRAR DIRECTO (Si todavía usás el botón clásico por GET)
-if (isset($_GET['borrar'])) {
-    borrarViaje((int)$_GET['borrar']);
-    header("Location: lista_viajes.php");
+// DESASIGNAR MOVIL
+if (isset($_GET['desasignar'])) {
+
+    $idViaje = (int)$_GET['desasignar'];
+
+    $conn = conexion();
+
+    $stmt = $conn->prepare("
+        UPDATE viajes_despacho
+        SET
+            id_chofer = NULL,
+            estado = 'Pendiente'
+        WHERE id = ?
+    ");
+
+    $stmt->execute([$idViaje]);
+
+    header("Location: lista_viajes.php?estado=pendiente");
     exit;
 }
 
@@ -68,6 +82,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['viaje_id'])) {
 $filtro = $_GET['estado'] ?? '';
 $todosLosViajes = obtenerViajes();
 $choferes = obtenerChoferesActivos();
+
+/* Dejamos solo los choferes cuyo vehículo está 'disponible' en la tabla vehiculos */
+$stmtDisponibles = $conn->prepare("SELECT id_chofer FROM vehiculos WHERE estado = 'disponible' AND id_chofer IS NOT NULL");
+$stmtDisponibles->execute();
+$idsChoferesDisponibles = $stmtDisponibles->fetchAll(PDO::FETCH_COLUMN);
+
+$choferes = array_values(array_filter($choferes, function ($c) use ($idsChoferesDisponibles) {
+    return in_array($c['id'], $idsChoferesDisponibles);
+}));
 
 /* CONTADORES */
 $contadores = [
@@ -245,10 +268,15 @@ foreach ($todosLosViajes as $v) {
 
                             <tr style="background-color: <?= $fondo ?>;">
                                 <td>
-                                    <select name="acciones_viaje" class="select-acciones" style="font-size: 11px; padding: 2px 4px; height: 22px; width: auto; min-width: 100px;" onchange="evaluarAccion(this, <?= $v['id'] ?>)">
-                                        <option value="" disabled selected>Opciones</option>
+                                    <select name="acciones_viaje"
+                                        class="select-acciones"
+                                        onchange="evaluarAccion(this, <?= $v['id'] ?>)">
+
+                                        <option value="" selected>Opciones</option>
                                         <option value="asignar_movil">Asignar Móvil</option>
+                                        <option value="desasignar_movil">Desasignar Móvil</option>
                                         <option value="cancelar_viaje">Cancelar Viaje</option>
+
                                     </select>
                                 </td>
                                 <td><?= $v['id'] ?></td>

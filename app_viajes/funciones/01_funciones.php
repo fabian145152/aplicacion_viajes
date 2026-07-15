@@ -259,7 +259,7 @@ function obtenerVehiculos()
                    CONCAT(c.apellido, ' ', c.nombre) AS chofer
             FROM vehiculos v
             LEFT JOIN choferes c ON v.id_chofer = c.id
-            ORDER BY v.patente ASC";
+            ORDER BY v.id DESC";
 
     return $pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
 }
@@ -361,22 +361,6 @@ function guardarChofer($data)
 
     // Si viene vacío, guardamos NULL en vez de string vacío (por la FK a vehiculos.id)
     $movil = (isset($data['movil']) && $data['movil'] !== '') ? $data['movil'] : null;
-    $id = $data['id'] ?? null;
-
-    // Validamos que el móvil no esté usado por OTRO chofer (movil es UNIQUE)
-    if ($movil !== null) {
-        if (!empty($id)) {
-            $stmtCheck = $pdo->prepare("SELECT id FROM choferes WHERE movil = ? AND id <> ?");
-            $stmtCheck->execute([$movil, $id]);
-        } else {
-            $stmtCheck = $pdo->prepare("SELECT id FROM choferes WHERE movil = ?");
-            $stmtCheck->execute([$movil]);
-        }
-
-        if ($stmtCheck->fetch()) {
-            return 'movil_duplicado';
-        }
-    }
 
     if (!empty($data['id'])) {
         // UPDATE

@@ -259,7 +259,7 @@ function obtenerVehiculos()
                    CONCAT(c.apellido, ' ', c.nombre) AS chofer
             FROM vehiculos v
             LEFT JOIN choferes c ON v.id_chofer = c.id
-            ORDER BY v.patente ASC";
+            ORDER BY v.id DESC";
 
     return $pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
 }
@@ -359,29 +359,10 @@ function guardarChofer($data)
 {
     $pdo = conexion();
 
-    // Si viene vacío, guardamos NULL en vez de string vacío (por la FK a vehiculos.id)
-    $movil = (isset($data['movil']) && $data['movil'] !== '') ? $data['movil'] : null;
-    $id = $data['id'] ?? null;
-
-    // Validamos que el móvil no esté usado por OTRO chofer (movil es UNIQUE)
-    if ($movil !== null) {
-        if (!empty($id)) {
-            $stmtCheck = $pdo->prepare("SELECT id FROM choferes WHERE movil = ? AND id <> ?");
-            $stmtCheck->execute([$movil, $id]);
-        } else {
-            $stmtCheck = $pdo->prepare("SELECT id FROM choferes WHERE movil = ?");
-            $stmtCheck->execute([$movil]);
-        }
-
-        if ($stmtCheck->fetch()) {
-            return 'movil_duplicado';
-        }
-    }
-
     if (!empty($data['id'])) {
         // UPDATE
         $sql = "UPDATE choferes 
-                SET nombre=?, apellido=?, cel=?, dir=?, barrio=?, cp=?, movil=?
+                SET nombre=?, apellido=?, cel=?, dir=?, barrio=?, cp=?
                 WHERE id=?";
         $stmt = $pdo->prepare($sql);
 
@@ -392,13 +373,12 @@ function guardarChofer($data)
             $data['dir'],
             $data['barrio'],
             $data['cp'],
-            $movil,
             $data['id']
         ]);
     } else {
         // INSERT
-        $sql = "INSERT INTO choferes (nombre, apellido, cel, dir, barrio, cp, movil) 
-                VALUES (?, ?, ?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO choferes (nombre, apellido, cel, dir, barrio, cp) 
+                VALUES (?, ?, ?, ?, ?, ?)";
         $stmt = $pdo->prepare($sql);
 
         return $stmt->execute([
@@ -407,8 +387,7 @@ function guardarChofer($data)
             $data['cel'],
             $data['dir'],
             $data['barrio'],
-            $data['cp'],
-            $movil
+            $data['cp']
         ]);
     }
 }
