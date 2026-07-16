@@ -1,15 +1,28 @@
 # 00_viajes_pc
 
+# Fecha de inicio 6-4-2026
+# Tilde tecla windows + .
+
 crud de usuarios
      de choferes
      de unidades
 
-relaciona choferes con unidades por si hay cambio de unidades
+# menu super usuario
+# menu administrador
+# menu operador
+# menu taller
+
+
+relaciona choferes con unidades por si hay cambio de unidades   ✔
+
+ajuste de tiempo para diferidos probado. ✔
+
+tiempo para el alerto de viajes en pantalla ✔
+
+
+
 
 carga de viajes con mapas y recorrido
 
-listado de viajes con diferidos. 
-
-ajuste de tiempo para diferidos probado.
-
 trabajando con ajuste de tiempo para viaje en pantalla.
+

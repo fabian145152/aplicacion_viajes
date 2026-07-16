@@ -32,6 +32,22 @@ if (isset($_GET['editar'])) {
 // DATOS
 $choferes = obtenerChoferes();
 
+// --- SECCIÓN DE VEHÍCULOS ADAPTADA (Se incluye 'tipo') ---
+$vehiculos = obtenerVehiculos(); // Obtenemos todos los vehículos
+$vehiculoPorChofer = [];
+foreach ($vehiculos as $v) {
+    if (!empty($v['id_chofer'])) {
+        // Guardamos los datos del vehículo usando el ID del chofer como clave
+        $vehiculoPorChofer[$v['id_chofer']] = [
+            'marca'   => $v['marca'] ?? '',
+            'modelo'  => $v['modelo'] ?? '',
+            'patente' => $v['patente'] ?? '',
+            'tipo'    => $v['tipo'] ?? '' // <- Agregado aquí
+        ];
+    }
+}
+// -----------------------------
+
 // FILTRO por número de móvil
 $filtroMovil = trim($_GET['movil_buscar'] ?? '');
 if ($filtroMovil !== '') {
@@ -78,7 +94,6 @@ usort($choferes, function ($a, $b) use ($orden) {
 
         <div class="card operadores-layout">
 
-            <!-- FORM -->
             <div class="col-form">
                 <h3><?php echo $chofer_a_editar ? "Editar Chofer" : "Nuevo Chofer"; ?></h3>
 
@@ -86,45 +101,75 @@ usort($choferes, function ($a, $b) use ($orden) {
 
                     <input type="hidden" name="id" value="<?php echo $chofer_a_editar['id'] ?? ''; ?>">
 
-                    <input type="number" name="movil" placeholder="Movil"
-                        value="<?php echo $chofer_a_editar['movil'] ?? ''; ?>">
+                    <div class="fila">
+                        <label for="movil">Número de Móvil:</label>
+                        <input type="number" id="movil" name="movil"
+                            value="<?php echo $chofer_a_editar['movil'] ?? ''; ?>">
+                    </div>
 
-                    <input type="text" name="nombre" placeholder="Nombre"
-                        value="<?php echo $chofer_a_editar['nombre'] ?? ''; ?>" required>
+                    <div class="fila">
+                        <label for="nombre">Nombre:</label>
+                        <input type="text" id="nombre" name="nombre"
+                            value="<?php echo $chofer_a_editar['nombre'] ?? ''; ?>" required>
+                    </div>
 
-                    <input type="text" name="apellido" placeholder="Apellido"
-                        value="<?php echo $chofer_a_editar['apellido'] ?? ''; ?>" required>
+                    <div class="fila">
+                        <label for="apellido">Apellido:</label>
+                        <input type="text" id="apellido" name="apellido"
+                            value="<?php echo $chofer_a_editar['apellido'] ?? ''; ?>" required>
+                    </div>
 
-                    <input type="text" name="cp" placeholder="DNI"
-                        value="<?php echo $chofer_a_editar['user'] ?? ''; ?>" required>
+                    <div class="fila">
+                        <label for="user">DNI:</label>
+                        <input type="text" id="user" name="user"
+                            value="<?php echo $chofer_a_editar['user'] ?? ''; ?>" required>
+                    </div>
 
-                    <input type="text" name="cp" placeholder="Clave"
-                        value="<?php echo $chofer_a_editar['clave'] ?? ''; ?>" required>
+                    <div class="fila">
+                        <label for="clave">Clave:</label>
+                        <input type="text" id="clave" name="clave"
+                            value="<?php echo $chofer_a_editar['clave'] ?? ''; ?>" required>
+                    </div>
 
-                    <input type="text" name="cel" placeholder="Celular"
-                        value="<?php echo $chofer_a_editar['cel'] ?? ''; ?>" required>
+                    <div class="fila">
+                        <label for="cel">Celular:</label>
+                        <input type="text" id="cel" name="cel"
+                            value="<?php echo $chofer_a_editar['cel'] ?? ''; ?>" required>
+                    </div>
 
-                    <input type="text" name="dir" placeholder="Dirección"
-                        value="<?php echo $chofer_a_editar['dir'] ?? ''; ?>" required>
+                    <div class="fila">
+                        <label for="dir">Dirección:</label>
+                        <input type="text" id="dir" name="dir"
+                            value="<?php echo $chofer_a_editar['dir'] ?? ''; ?>" required>
+                    </div>
 
-                    <input type="text" name="barrio" placeholder="Barrio"
-                        value="<?php echo $chofer_a_editar['barrio'] ?? ''; ?>" required>
+                    <div class="fila">
+                        <label for="barrio">Barrio:</label>
+                        <input type="text" id="barrio" name="barrio"
+                            value="<?php echo $chofer_a_editar['barrio'] ?? ''; ?>" required>
+                    </div>
 
-                    <input type="text" name="cp" placeholder="Código Postal"
-                        value="<?php echo $chofer_a_editar['cp'] ?? ''; ?>" required>
+                    <div class="fila">
+                        <label for="cp">Código Postal:</label>
+                        <input type="text" id="cp" name="cp"
+                            value="<?php echo $chofer_a_editar['cp'] ?? ''; ?>" required>
+                    </div>
 
-                    <button type="submit" name="guardar" class="btn btn-success">
-                        <?php echo $chofer_a_editar ? "Actualizar" : "Crear Chofer"; ?>
-                    </button>
+                    <div class="botones">
+                        <button type="submit" name="guardar" class="btn btn-success">
+                            <?php echo $chofer_a_editar ? "Actualizar" : "Crear Chofer"; ?>
+                        </button>
 
-                    <?php if ($chofer_a_editar): ?>
-                        <a href="listado_choferes.php" class="btn btn-gray">Cancelar</a>
-                    <?php endif; ?>
-                    <a href="../../inicio_0.php" class="btn btn-danger">SALIR</a>
+                        <?php if ($chofer_a_editar): ?>
+                            <a href="listado_choferes.php" class="btn btn-gray">Cancelar</a>
+                        <?php endif; ?>
+
+                        <a href="../../inicio_0.php" class="btn btn-danger">SALIR</a>
+                    </div>
+
                 </form>
             </div>
 
-            <!-- TABLA -->
             <div class="col-tabla">
 
                 <form method="GET" class="filtros" style="display:flex; flex-direction:row; gap:6px; align-items:center; justify-content:flex-start; margin-bottom:15px; flex-wrap:nowrap;">
@@ -152,7 +197,8 @@ usort($choferes, function ($a, $b) use ($orden) {
                             <th>Apellido</th>
                             <th>DNI</th>
                             <th>Clave</th>
-                            <th>Vehículos</th>
+                            <th>Vehículo</th>
+                            <th>Tipo</th>
                             <th>Estado</th>
                             <th>Celular</th>
                             <th>Direccion</th>
@@ -172,16 +218,25 @@ usort($choferes, function ($a, $b) use ($orden) {
                                     <td><?php echo htmlspecialchars($c['apellido']); ?></td>
                                     <td><?php echo htmlspecialchars($c['user']); ?></td>
                                     <td><?php echo htmlspecialchars($c['clave']); ?></td>
+                                    <?php $vehiculoAsignado = $vehiculoPorChofer[$c['id']] ?? null;?>
                                     <td>
-                                        <?php if (!empty($c['patente'])): ?>
-                                            <?php echo htmlspecialchars($c['marca'] . ' ' . $c['modelo'] . ' (' . $c['patente'] . ')'); ?>
+                                        <?php if ($vehiculoAsignado): ?>
+                                            <?php echo htmlspecialchars($vehiculoAsignado['marca'] . ' ' . $vehiculoAsignado['modelo'] . ' (' . $vehiculoAsignado['patente'] . ')'); ?>
                                         <?php else: ?>
-                                            Sin vehículo
+                                            <span class="text-muted">Sin vehículo</span>
                                         <?php endif; ?>
                                     </td>
 
                                     <td>
-                                        <?php if (!empty($c['patente'])): ?>
+                                        <?php if ($vehiculoAsignado && !empty($vehiculoAsignado['tipo'])): ?>
+                                            <strong><?php echo htmlspecialchars(ucfirst($vehiculoAsignado['tipo'])); ?></strong>
+                                        <?php else: ?>
+                                            <span class="text-muted">-</span>
+                                        <?php endif; ?>
+                                    </td>
+
+                                    <td>
+                                        <?php if ($vehiculoAsignado): ?>
                                             <span class="badge badge-success">Asignado</span>
                                         <?php else: ?>
                                             <span class="badge badge-danger">Libre</span>
@@ -215,7 +270,7 @@ usort($choferes, function ($a, $b) use ($orden) {
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="5">No hay choferes.</td>
+                                <td colspan="14" class="text-center">No hay choferes.</td>
                             </tr>
                         <?php endif; ?>
                     </tbody>

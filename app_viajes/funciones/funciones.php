@@ -281,11 +281,12 @@ function guardarVehiculo($data)
 
     // 🔥 CLAVE: permitir NULL si no hay chofer
     $id_chofer = !empty($data['id_chofer']) ? $data['id_chofer'] : null;
+    $tipo = !empty($data['tipo']) ? trim($data['tipo']) : null;
 
     if (!empty($data['id'])) {
-        // UPDATE
+        // UPDATE con el campo 'tipo' añadido
         $sql = "UPDATE vehiculos 
-                SET categoria=?, marca=?, modelo=?, patente=?, estado=?, color=?, id_chofer=? 
+                SET categoria=?, marca=?, modelo=?, patente=?, estado=?, color=?, tipo=?, id_chofer=?
                 WHERE id=?";
         $stmt = $pdo->prepare($sql);
 
@@ -296,14 +297,15 @@ function guardarVehiculo($data)
             $data['patente'],
             $data['estado'],
             $data['color'],
+            $tipo,
             $id_chofer,
             $data['id']
         ]);
     } else {
-        // INSERT
+        // INSERT con el campo 'tipo' añadido
         $sql = "INSERT INTO vehiculos 
-                (categoria, marca, modelo, patente, estado, color, id_chofer) 
-                VALUES (?, ?, ?, ?, ?, ?, ?)";
+                (categoria, marca, modelo, patente, estado, color, tipo, id_chofer)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt = $pdo->prepare($sql);
 
         return $stmt->execute([
@@ -313,6 +315,7 @@ function guardarVehiculo($data)
             $data['patente'],
             $data['estado'],
             $data['color'],
+            $tipo,
             $id_chofer
         ]);
     }
@@ -381,7 +384,7 @@ function guardarChofer($data)
     if (!empty($data['id'])) {
         // UPDATE
         $sql = "UPDATE choferes 
-                SET nombre=?, apellido=?, cel=?, dir=?, barrio=?, cp=?, movil=?
+                SET nombre=?, apellido=?, cel=?, dir=?, barrio=?, cp=?, movil=?, user=?, clave=?
                 WHERE id=?";
         $stmt = $pdo->prepare($sql);
 
@@ -393,12 +396,14 @@ function guardarChofer($data)
             $data['barrio'],
             $data['cp'],
             $movil,
+            $data['user'],
+            $data['clave'],
             $data['id']
         ]);
     } else {
         // INSERT
-        $sql = "INSERT INTO choferes (nombre, apellido, cel, dir, barrio, cp, movil) 
-                VALUES (?, ?, ?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO choferes (nombre, apellido, cel, dir, barrio, cp, movil, user, clave) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt = $pdo->prepare($sql);
 
         return $stmt->execute([
@@ -408,7 +413,9 @@ function guardarChofer($data)
             $data['dir'],
             $data['barrio'],
             $data['cp'],
-            $movil
+            $movil,
+            $data['user'],
+            $data['clave']
         ]);
     }
 }

@@ -25,8 +25,8 @@ body {
 
 /* CONTENEDOR */
 .container {
-    width: 95%;
-    max-width: 1200px;
+    width: 98%; /* Ampliado levemente para aprovechar los bordes de la pantalla */
+    max-width: 1400px; /* Incrementado para que quepan tablas con muchas columnas */
     margin: 30px auto;
 }
 
@@ -68,6 +68,8 @@ h2, h3 {
     text-decoration: none;
     color: #fff;
     font-size: 13px;
+    text-align: center;
+    white-space: nowrap; /* Evita que el texto de los botones se divida en dos líneas */
 }
 
 .btn-success { background: var(--success); }
@@ -86,12 +88,14 @@ input, select {
     padding: 10px;
     border-radius: 6px;
     border: 1px solid #ccc;
+    width: 100%;
 }
 
-/* TABLA */
+/* TABLA GENERAL */
 .table {
     width: 100%;
     border-collapse: collapse;
+    font-size: 11px; /* Reducido levemente para que entre toda la información */
 }
 
 .table thead {
@@ -100,8 +104,10 @@ input, select {
 }
 
 .table th, .table td {
-    padding: 10px;
+    padding: 6px 4px; /* Ajuste fino de padding para ahorrar espacio horizontal */
     border-bottom: 1px solid #ddd;
+    text-align: left;
+    vertical-align: middle;
 }
 
 .table tr:hover {
@@ -110,10 +116,12 @@ input, select {
 
 /* BADGES */
 .badge {
-    padding: 5px 8px;
-    border-radius: 6px;
+    display: inline-block;
+    padding: 3px 6px;
+    border-radius: 4px;
     color: #fff;
-    font-size: 12px;
+    font-size: 11px;
+    text-align: center;
 }
 
 .badge-success { background: var(--success); }
@@ -124,15 +132,15 @@ input, select {
 /* ============================= */
 /* LAYOUT 2 COLUMNAS */
 /* ============================= */
-
 .operadores-layout {
     display: grid;
-    grid-template-columns: 200px 1fr !important; /* Usar con precaución */
-    gap: 25px;
+    grid-template-columns: 280px 1fr; /* Reducido el formulario de la izquierda a 280px para darle más espacio a la tabla */
+    gap: 20px;
     align-items: start;
 }
+
 .col-form {
-    background: #fafafa;
+    background: #f9f9f9;
     padding: 15px;
     border-radius: 8px;
     border: 1px solid #eee;
@@ -141,24 +149,26 @@ input, select {
 }
 
 .col-tabla {
-    overflow-x: auto;
+    width: 100%;
+    overflow-x: auto; /* Mantiene la barra de desplazamiento solo como último recurso de seguridad */
+}
+
+/* BOTONES DE ACCIONES EN LA TABLA */
+.table td:last-child {
+    display: flex;
+    gap: 4px;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+/* BOTONES DENTRO DE TABLA */
+.table .btn {
+    font-size: 11px;
+    padding: 4px 8px;
 }
 
 /* ============================= */
-/* RESPONSIVE */
-/* ============================= */
-@media (max-width: 900px) {
-    .operadores-layout {
-        grid-template-columns: 1fr;
-    }
-
-    .col-form {
-        position: static;
-    }
-}
-
-/* ============================= */
-/* SIDEBAR */
+/* SIDEBAR (Si se utiliza en el proyecto) */
 /* ============================= */
 .sidebar {
     width: 220px;
@@ -202,88 +212,34 @@ input, select {
     padding: 20px;
 }
 
-
 /* ============================= */
-/* ESTILOS ESPECÍFICOS AGREGADOR */   
+/* RESPONSIVE */
 /* ============================= */
+@media (max-width: 1100px) {
+    .operadores-layout {
+        grid-template-columns: 1fr; /* Pasa a ser una sola columna (formulario arriba, tabla abajo) en pantallas medianas/chicas */
+    }
 
-/* CONTENEDOR GENERAL */
-.container {
-    max-width: 1200px;
-    margin: 40px auto;
+    .col-form {
+        position: static;
+    }
 }
 
-/* LAYOUT DOS COLUMNAS */
-.operadores-layout {
-    display: grid;
-    grid-template-columns: 320px 1fr; /* izquierda fija, derecha flexible */
-    gap: 25px;
-    align-items: start;
+/* FILTROS */
+.filtros {
+    text-align: center;
+    margin-bottom: 15px;
 }
 
-/* FORMULARIO */
-.col-form {
-    background: #f9f9f9;
-    padding: 15px;
-    border-radius: 10px;
+.filtros a {
+    color: var(--primary);
+    font-weight: bold;
+    text-decoration: none;
 }
 
-/* TABLA */
-.col-tabla {
-    width: 100%;
-}
-
-/* TABLA AJUSTE */
-.table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-/* CELDAS */
-.table th,
-.table td {
-    padding: 10px;
-    text-align: left;
-}
-
-/* BOTONES EN FILA */
-.table td:last-child {
-    display: flex;
-    gap: 5px;
-    justify-content: center;
-    align-items: center;
-}
-
-/* BADGES */
-.badge {
-    display: inline-block;
-    padding: 5px 8px;
-    border-radius: 6px;
-    font-size: 12px;
-}
-
-/* ============================= */
-/* TABLAS COMPACTAS */
-/* ============================= */
-
-.table {
-    font-size: 12px;
-}
-
-.table th,
-.table td {
-    padding: 6px 8px;
-    line-height: 1.2;
-}
-
-/* BOTONES DENTRO DE TABLA */
-.table .btn {
-    font-size: 11px;
-    padding: 5px 8px;
-}
-
-/* BADGES MÁS CHICOS EN TABLAS */
-.table .badge {
-    font-size: 11px;
-    padding: 3px 6px;
+/* 🔥 NUEVO: Evita que los inputs y selects de los filtros ocupen el 100% de la página */
+.filtros input,
+.filtros select,
+.filtros button {
+    width: auto !important; 
 }

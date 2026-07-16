@@ -32,6 +32,22 @@ $movilPorChofer = [];
 foreach ($choferes as $c) {
     $movilPorChofer[$c['id']] = $c['movil'] ?? '-';
 }
+
+// Choferes que ya están asignados a OTRO vehículo (para no ofrecerlos de nuevo en el desplegable)
+$choferesOcupados = [];
+foreach ($vehiculos as $veh) {
+    $esElMismoQueEditamos = $vehiculo_a_editar && $veh['id'] == $vehiculo_a_editar['id'];
+    if (!empty($veh['id_chofer']) && !$esElMismoQueEditamos) {
+        $choferesOcupados[] = $veh['id_chofer'];
+    }
+}
+
+// 🔥 NORMALIZACIÓN DEL TIPO PARA EL FORMULARIO
+// Convertimos a minúsculas y limpiamos espacios para que coincida siempre con el select
+$tipo_actual = '';
+if ($vehiculo_a_editar && !empty($vehiculo_a_editar['tipo'])) {
+    $tipo_actual = strtolower(trim($vehiculo_a_editar['tipo']));
+}
 ?>
 
 <!DOCTYPE html>
@@ -58,7 +74,7 @@ foreach ($choferes as $c) {
 
                     <input type="hidden" name="id" value="<?php echo $vehiculo_a_editar['id'] ?? ''; ?>">
 
-                    <!-- <label>Categoría:</label> -->
+                    <label>Categoría:</label>
                     <select name="categoria" required>
                         <option value="">Seleccione categoria...</option>
                         <option value="TAXI" <?php if (($vehiculo_a_editar['categoria'] ?? '') == 'TAXI') echo 'selected'; ?>>TAXI</option>
@@ -76,6 +92,14 @@ foreach ($choferes as $c) {
 
                     <input type="text" name="color" placeholder="Color"
                         value="<?php echo htmlspecialchars($vehiculo_a_editar['color'] ?? ''); ?>">
+
+                    <label>Tipo de Unidad:</label>
+                    <select name="tipo" required>
+                        <option value="">Seleccione tipo...</option>
+                        <option value="SEDAN" <?php if ($tipo_actual === 'sedan') echo 'selected'; ?>>Sedán</option>
+                        <option value="VAN" <?php if ($tipo_actual === 'van') echo 'selected'; ?>>Van</option>
+                        <option value="UTILITARIO" <?php if ($tipo_actual === 'utilitario') echo 'selected'; ?>>Utilitario</option>
+                    </select>
 
                     <label>Estado:</label>
                     <select name="estado">
@@ -97,6 +121,7 @@ foreach ($choferes as $c) {
                     <select name="id_chofer">
                         <option value="">Sin asignar</option>
                         <?php foreach ($choferes as $c): ?>
+                            <?php if (in_array($c['id'], $choferesOcupados)) continue; ?>
                             <option value="<?php echo $c['id']; ?>"
                                 <?php if (($vehiculo_a_editar['id_chofer'] ?? '') == $c['id']) echo 'selected'; ?>>
                                 <?php echo htmlspecialchars($c['apellido'] . ' ' . $c['nombre']); ?>
@@ -123,11 +148,11 @@ foreach ($choferes as $c) {
                 <table class="table">
                     <thead>
                         <tr>
-                            <!-- <th>ID</th> -->
                             <th>Móvil</th>
                             <th>Categoría</th>
                             <th>Marca/Modelo</th>
                             <th>Color</th>
+                            <th>Tipo</th>
                             <th>Patente</th>
                             <th>Estado</th>
                             <th>Chofer</th>
@@ -139,17 +164,15 @@ foreach ($choferes as $c) {
                         <?php if (count($vehiculos) > 0): ?>
                             <?php foreach ($vehiculos as $v): ?>
                                 <tr>
-                                    <?php $v['id']; ?>
-                                    <td><?php echo htmlspecialchars($movilPorChofer[$v['id_chofer'] ?? null] ?? '-'); ?></td>
+                                    <td><strong><?php echo htmlspecialchars($movilPorChofer[$v['id_chofer'] ?? null] ?? '-'); ?></strong></td>
                                     <td><strong><?php echo htmlspecialchars($v['categoria']); ?></strong></td>
                                     <td>
                                         <?php echo htmlspecialchars($v['marca']); ?><br>
-                                        <small><?php echo htmlspecialchars($v['modelo']); ?></small>
+                                        <small class="text-muted"><?php echo htmlspecialchars($v['modelo'] ?? ''); ?></small>
                                     </td>
-                                    <td>
-                                        <?php echo htmlspecialchars($v['color']); ?><br>
-                                        <td><strong><?php echo htmlspecialchars($v['patente']); ?></strong></td>
-                                    </td>
+                                    <td><?php echo htmlspecialchars($v['color']); ?></td>
+                                    <td><strong><?php echo htmlspecialchars(ucfirst($v['tipo'] ?? '-')); ?></strong></td>
+                                    <td><strong><?php echo htmlspecialchars($v['patente']); ?></strong></td>
 
                                     <td>
                                         <?php if ($v['estado'] == 'disponible'): ?>
@@ -177,7 +200,7 @@ foreach ($choferes as $c) {
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="8" class="text-center">No hay vehículos registrados.</td>
+                                <td colspan="9" class="text-center">No hay vehículos registrados.</td>
                             </tr>
                         <?php endif; ?>
                     </tbody>

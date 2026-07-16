@@ -33,6 +33,9 @@ $nombre_completo = $row['nom_apellido'] ?? '';
         <li>Administracion</li>
         <li><a href="00_administracion/menu_admin.php">ADMINISTRACION</a></li>
         <br>
+        <li>Moviles</li>
+        <li><a href="00_administracion/num_mov/lista_de_numeros.php">LISTADO DE MOVILES</a></li>
+        <br>
         <li>Trafico</li>
         <li><a href="00_administracion/trafico/listado.php">UNIDADES</a></li>
         <li><a href="00_administracion/choferes/listado_choferes.php">CHOFERES</a></li>
@@ -44,6 +47,7 @@ $nombre_completo = $row['nom_apellido'] ?? '';
         <li><a href="00_administracion/despacho_viajes/carga_viajes.php" target="_blank">NUEVOS VIAJES</a></li>
         <li><a href="00_administracion/despacho_viajes/lista_viajes.php" target="_blank">LISTADO DE VIAJES</a></li>
         <br>
+        <li>Mapeo</li>
         <li><a href="01_mapeo/mapa_de_viajes.php" target="_blank">MAPA DE VIAJES</a></li>
         <li><a href="01_mapeo/ver_mapa.php" target="_blank">MAPA DE UNIDADES TRABAJANDO</a></li>
         <li><a href="01_mapeo/ubicaciones_actuales.php" target="_blank">UBICACIONES ACTUALES</a></li>

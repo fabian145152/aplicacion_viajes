@@ -96,7 +96,7 @@ CREATE TABLE `choferes` (
   `clave` int(4) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `movil` (`movil`)
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -105,7 +105,7 @@ CREATE TABLE `choferes` (
 
 LOCK TABLES `choferes` WRITE;
 /*!40000 ALTER TABLE `choferes` DISABLE KEYS */;
-INSERT INTO `choferes` VALUES (2,'Fabian','Nogueroles',1169356236,'Carlos Gardel 3296','V. Libertad',1650,2,0,14952694,145152),(4,'Cachorro','Lopez',1145895689,'Av Ricardo Balbin 2589','Saavedra',1250,3025,0,123456,1234),(5,'Carlos','Piragine',1125896589,'Corrientes 458','Flores',1444,327,0,0,0),(6,'Facundo','Cabral',1234,'la copa 200','al gineta',1112,3033,0,0,0),(7,'Albert','Einstein',1145796532,'Laprida 4490','Martelli',1603,3031,0,0,0),(9,'San ','Martin',1156238956,'cementerio 1236','recoleta',1000,3032,0,0,0);
+INSERT INTO `choferes` VALUES (2,'FABAN','NOGUEROLES',1169356236,'Carlos Gardel 3296','V. Libertad',1650,3,0,14952694,145152),(4,'Cachorro','Lopez',1145895689,'Av Ricardo Balbin 2589','Saavedra',1250,3025,0,123456,1234),(5,'Carlos','Piragine',1125896589,'Corrientes 458','Flores',1444,327,0,1122225555,6666),(6,'Facundo','Cabral',1234,'la copa 200','al gineta',1112,3033,0,0,0),(7,'Albert','Einstein',1145796532,'Laprida 4490','Martelli',1603,3031,0,1111111111,1111),(9,'San ','Martin',1156238956,'cementerio 1236','recoleta',1000,3032,0,0,0),(10,'Carlos ','Gaboto',2147483647,'CAMARONES 2550','fLORES',15620,3125,0,0,0),(11,'Groucho','Marx',1158963256,'Niceto Vega 1500','PAlermo Holliwood',1258,3027,0,25698653,8653);
 /*!40000 ALTER TABLE `choferes` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -242,6 +242,7 @@ CREATE TABLE `vehiculos` (
   `patente` varchar(20) DEFAULT NULL,
   `estado` varchar(20) NOT NULL,
   `color` varchar(20) NOT NULL,
+  `tipo` varchar(20) NOT NULL,
   `id_chofer` int(4) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4;
@@ -253,7 +254,7 @@ CREATE TABLE `vehiculos` (
 
 LOCK TABLES `vehiculos` WRITE;
 /*!40000 ALTER TABLE `vehiculos` DISABLE KEYS */;
-INSERT INTO `vehiculos` VALUES (1,'REMIS','TOYOTA','COROLLA','NZW952','disponible','NEGRO',NULL),(2,'REMIS','FIAT','CRONOS','AA456GG','con_chofer','BLANCO',7),(3,'REMIS','FIAT','CRONOS','AF795AV','disponible','GRIS PLATA',NULL),(4,'REMIS','TOYOTA','COROLLA','AG381TG','disponible','GRIS PLATA',NULL),(5,'TAXI','CHEVROLET','SPIN','PNU638','disponible','NEGRO/AMARILLO',NULL),(6,'REMIS','TOYOTA','COROLLA','AG802YB','disponible','CRIS OSCURO',NULL),(7,'REMIS','FIAT','CRONOS','AF828AS','disponible','BLANCO',NULL),(8,'REMIS','FIAT','CRONOS','AF795AS','disponible','CRIS PLATA',NULL),(10,'REMIS','CHEVROLET','SPIN','AA338KG','con_chofer','VERDE',4),(11,'REMIS','TOYOTA','COROLLA HIBRIDO','AG802WX','disponible','BLANCO',NULL),(12,'TAXI','FIAT','CRONOS','AG866II','disponible','NEGRO/AMARILLO',NULL),(13,'REMIS','CHEVROLET','SPIN','NDC833','disponible','BLANCO',NULL),(14,'REMIS','CHEVROLET','SPIN','NHQ762','disponible','GRIS PLATA',NULL),(15,'TAXI','FIAT','CRONOS','AG866IF','disponible','NEGRO/AMARILLO',NULL);
+INSERT INTO `vehiculos` VALUES (1,'REMIS','TOYOTA','COROLLA','NZW952','disponible','NEGRO','SEDAN',NULL),(2,'REMIS','FIAT','CRONOS','AA456GG','con_chofer','BLANCO','SEDAN',6),(3,'REMIS','FIAT','CRONOS','AF795AV','taller','GRIS PLATA','SEDAN',NULL),(4,'REMIS','TOYOTA','COROLLA','AG381TG','disponible','GRIS PLATA','SEDAN',NULL),(5,'TAXI','CHEVROLET','SPIN','PNU638','disponible','NEGRO/AMARILLO','VAN',NULL),(6,'REMIS','TOYOTA','COROLLA','AG802YB','disponible','CRIS OSCURO','SEDAN',NULL),(7,'REMIS','FIAT','CRONOS','AF828AS','con_chofer','BLANCO','SEDAN',7),(8,'REMIS','FIAT','CRONOS','AF795AS','disponible','CRIS PLATA','SEDAN',NULL),(11,'REMIS','TOYOTA','COROLLA HIBRIDO','AG802WX','disponible','BLANCO','SEDAN',NULL),(12,'TAXI','FIAT','CRONOS','AG866II','disponible','NEGRO/AMARILLO','VAN',5),(13,'REMIS','CHEVROLET','SPIN','NDC833','disponible','BLANCO','VAN',NULL),(14,'REMIS','CHEVROLET','SPIN','NHQ762','disponible','GRIS PLATA','VAN',NULL),(15,'TAXI','FIAT','CRONOS','AG866IF','con_chofer','NEGRO/AMARILLO','SEDAN',2);
 /*!40000 ALTER TABLE `vehiculos` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -296,7 +297,7 @@ CREATE TABLE `viajes_despacho` (
 
 LOCK TABLES `viajes_despacho` WRITE;
 /*!40000 ALTER TABLE `viajes_despacho` DISABLE KEYS */;
-INSERT INTO `viajes_despacho` VALUES (45,1125895698,'Paco Jerte','Camacua 2000, caba','','ggg','ddd','Cancelado','','2026-07-15','17:31','REMIS',-34.62931130,-58.45795720,NULL,NULL,0,0,NULL,'qq',0),(46,1125895698,'Robert Fripp','French 2500, caba','','ggg','gggg','Pendiente','','2026-07-15','18:44','TAXI',-34.59035210,-58.40024590,NULL,NULL,0,0,NULL,'',0),(48,1125895698,'ESTEVEZ EMILIANO','Laprida 4490, Villa Martelli','','ddd','sss','Diferido','','2026-07-15','18:00','UTILITARIO',-34.55154940,-58.51190860,NULL,NULL,4,0,NULL,'',0),(50,2147483647,'LIBERMAN MARIO - ADMINISTRACION-DOCUMENTOS','Aranguren 450, caba','','asd','zxc','Diferido','','2026-07-15','18:05','VAN',-34.61241300,-58.43735780,NULL,NULL,5,0,NULL,'',0),(51,1125895698,'Pascualito Peres','Camacua 2000, caba','','','','Pendiente','','2026-07-15','18:20','REMIS',-34.62931130,-58.45795720,NULL,NULL,0,0,NULL,'',0),(52,1125895698,'CARNAU MAZZEI SABRINA','Sanabria 1979, caba','Garcia del rio 1250, caba','','','Pendiente','','2026-07-15','18:15','REMIS',-34.61847620,-58.50530700,-34.55175860,-58.47860080,4,0,NULL,'',0);
+INSERT INTO `viajes_despacho` VALUES (45,1125895698,'Paco Jerte','Camacua 2000, caba','','ggg','ddd','Cancelado','','2026-07-15','17:31','REMIS',-34.62931130,-58.45795720,NULL,NULL,0,0,NULL,'qq',0),(46,1125895698,'Robert Fripp','French 2500, caba','','ggg','gggg','Pendiente','','2026-07-15','18:44','TAXI',-34.59035210,-58.40024590,NULL,NULL,0,0,NULL,'',0),(48,1125895698,'ESTEVEZ EMILIANO','Laprida 4490, Villa Martelli','','ddd','sss','Inmediato','','2026-07-15','18:00','UTILITARIO',-34.55154940,-58.51190860,NULL,NULL,4,0,NULL,'',0),(50,2147483647,'LIBERMAN MARIO - ADMINISTRACION-DOCUMENTOS','Aranguren 450, caba','','asd','zxc','Inmediato','','2026-07-15','18:05','VAN',-34.61241300,-58.43735780,NULL,NULL,5,0,NULL,'',0),(51,1125895698,'Pascualito Peres','Camacua 2000, caba','','','','Pendiente','','2026-07-15','18:20','REMIS',-34.62931130,-58.45795720,NULL,NULL,0,0,NULL,'',0),(52,1125895698,'CARNAU MAZZEI SABRINA','Sanabria 1979, caba','Garcia del rio 1250, caba','','','Pendiente','','2026-07-15','18:15','REMIS',-34.61847620,-58.50530700,-34.55175860,-58.47860080,4,0,NULL,'',0);
 /*!40000 ALTER TABLE `viajes_despacho` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -309,4 +310,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-07-15 15:28:14
+-- Dump completed on 2026-07-16 16:10:43
