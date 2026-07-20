@@ -1,53 +1,48 @@
 <?php
-header("Content-Type: application/json");
-header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Headers: Content-Type");
-header("Access-Control-Allow-Methods: POST");
+header('Content-Type: application/json; charset=UTF-8');
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: POST, GET, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type');
 
-// 1. Conexión a la Base de Datos
-$conexion = new mysqli("localhost", "root", "belgrado", "app_viajes");
+// Incluir funciones de conexión
+include_once "../../funciones/funciones.php";
 
-if ($conexion->connect_error) {
-    echo json_encode(["res" => "ERROR", "msg" => "Error de conexión a la base de datos"]);
+// Recibir datos JSON
+$input = file_get_contents('php://input');
+$data = json_decode($input, true);
+
+$user = $data['user'] ?? '';
+$clave = $data['clave'] ?? '';
+
+// Validar que los campos no estén vacíos
+if (empty($user) || empty($clave)) {
+    echo json_encode(['res' => 'ERROR', 'msg' => 'Usuario y clave requeridos']);
     exit;
 }
 
-// 2. Leer el JSON enviado desde Flutter
-$jsonCrudo = file_get_contents("php://input");
-$datos = json_decode($jsonCrudo, true);
+try {
+    $con = conexion();
 
-$user = $datos['user'] ?? null;
-$clave = $datos['clave'] ?? null;
+    // Buscar en la tabla choferes
+    $sql = "SELECT id, nombre, apellido, movil, user, clave 
+            FROM choferes 
+            WHERE user = ? AND clave = ? AND movil IS NOT NULL AND movil != 0";
 
-if ($user === null || $clave === null) {
-    echo json_encode(["res" => "ERROR", "msg" => "Usuario y contraseña requeridos"]);
-    exit;
+    $stmt = $con->prepare($sql);
+    $stmt->execute([$user, $clave]);
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($result) {
+        echo json_encode([
+            'res' => 'OK',
+            'msg' => 'Login exitoso',
+            'movil' => $result['movil'],
+            'nombre' => $result['nombre'] . ' ' . $result['apellido'],
+            'user' => $result['user']
+        ]);
+    } else {
+        echo json_encode(['res' => 'ERROR', 'msg' => 'Usuario o clave incorrectos']);
+    }
+} catch (PDOException $e) {
+    echo json_encode(['res' => 'ERROR', 'msg' => 'Error de base de datos: ' . $e->getMessage()]);
 }
-
-// 3. Consultar en la tabla 'choferes' buscando coincidencia exacta
-// Modificado: Ahora seleccionamos también el campo 'movil' de la tabla choferes
-$stmt = $conexion->prepare("SELECT id, movil FROM choferes WHERE user = ? AND clave = ? LIMIT 1");
-$stmt->bind_param("ss", $user, $clave);
-
-$stmt->execute();
-$resultado = $stmt->get_result();
-
-// 4. Validar si se encontró el registro
-if ($resultado->num_rows > 0) {
-    $chofer = $resultado->fetch_assoc();
-
-    echo json_encode([
-        "res" => "OK",
-        "msg" => "Login correcto",
-        "usuario_id" => $chofer['id'],   // Conservamos esto por si lo necesitas
-        "movil" => $chofer['movil']       // <-- ¡ESTO ES LO QUE FLUTTER ESTABA ESPERANDO!
-    ]);
-} else {
-    echo json_encode([
-        "res" => "ERROR",
-        "msg" => "Usuario o contraseña incorrectos"
-    ]);
-}
-
-$stmt->close();
-$conexion->close();

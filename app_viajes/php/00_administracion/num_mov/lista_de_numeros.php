@@ -34,6 +34,40 @@ usort($moviles, function ($a, $b) {
     <meta charset="UTF-8">
     <title>Lista de Móviles</title>
     <link rel="stylesheet" href="../../../css/estilos.css">
+    <style>
+        /* Estilos adicionales para la tabla */
+        .table th,
+        .table td {
+            padding: 8px 10px;
+            vertical-align: middle;
+        }
+
+        .table th {
+            text-align: center;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .text-muted {
+            color: #6c757d;
+        }
+
+        .user-clave {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            background: #f0f0f0;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        .sin-datos {
+            color: #999;
+            font-style: italic;
+        }
+    </style>
 </head>
 
 <body>
@@ -41,7 +75,7 @@ usort($moviles, function ($a, $b) {
     <div class="container">
         <h2 class="text-center">Listado de Numeros de Móvil Activos</h2>
 
-        <div class="card" style="max-width: 900px; margin: 0 auto;">
+        <div class="card" style="max-width: 1100px; margin: 0 auto;">
 
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
                 <form method="GET" class="filtros" style="display:flex; flex-direction:row; gap:6px; align-items:center; margin: 0; flex-wrap:nowrap;">
@@ -60,10 +94,12 @@ usort($moviles, function ($a, $b) {
                 <table class="table">
                     <thead>
                         <tr>
-                            <th style="width: 15%; text-align: center;">N° Móvil</th>
-                            <th style="width: 35%;">Chofer</th>
-                            <th style="width: 20%;">Celular</th>
-                            <th style="width: 30%;">Vehículo Asignado</th>
+                            <th style="width: 10%;">N° Móvil</th>
+                            <th style="width: 25%;">Chofer</th>
+                            <th style="width: 15%;">Celular</th>
+                            <th style="width: 20%;">Vehículo Asignado</th>
+                            <th style="width: 15%;">Usuario</th>
+                            <th style="width: 15%;">Clave</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -88,17 +124,41 @@ usort($moviles, function ($a, $b) {
                                             <span class="text-muted" style="font-style: italic;">Sin unidad asignada</span>
                                         <?php endif; ?>
                                     </td>
+                                    <td style="text-align: center;">
+                                        <?php
+                                        $user = $m['user'] ?? '';
+                                        if (!empty($user) && $user != 0):
+                                        ?>
+                                            <span class="user-clave"><?php echo htmlspecialchars($user); ?></span>
+                                        <?php else: ?>
+                                            <span class="sin-datos">No asignado</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <?php
+                                        $clave = $m['clave'] ?? '';
+                                        if (!empty($clave) && $clave != 0):
+                                        ?>
+                                            <span class="user-clave"><?php echo htmlspecialchars($clave); ?></span>
+                                        <?php else: ?>
+                                            <span class="sin-datos">No asignada</span>
+                                        <?php endif; ?>
+                                    </td>
                                 </tr>
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="4" class="text-center" style="padding: 20px;">
+                                <td colspan="6" class="text-center" style="padding: 20px;">
                                     No se encontró el móvil ingresado.
                                 </td>
                             </tr>
                         <?php endif; ?>
                     </tbody>
                 </table>
+            </div>
+
+            <div style="margin-top: 15px; padding: 10px; background: #f8f9fa; border-radius: 6px; font-size: 13px; color: #666; text-align: center;">
+                <strong>Total de móviles:</strong> <?php echo count($moviles); ?>
             </div>
 
         </div>

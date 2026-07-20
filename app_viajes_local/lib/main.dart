@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
-import 'login.dart'; // Importas tu pantalla de login
+import 'package:wakelock_plus/wakelock_plus.dart'; // <-- Cambiar el import
+import 'login.dart';
 
 void main() {
+  // Activar wakelock al inicio de la app
+  WakelockPlus.enable();
   runApp(const MyApp());
 }
 
@@ -14,7 +17,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'App GPS',
       theme: ThemeData(primarySwatch: Colors.blue),
-      home: const LoginPage(), // Pantalla inicial
+      home: const LoginPage(),
     );
   }
 }

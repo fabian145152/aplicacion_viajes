@@ -1,40 +1,33 @@
 <?php
-header("Content-Type: application/json");
+include_once "../../funciones/funciones.php";
 
-$conexion = new mysqli("localhost", "root", "belgrado", "app_viajes");
+// Protegemos la página para operadores (3) o administrador (0)
+protegerPagina([0, 3]);
 
-if ($conexion->connect_error) {
-    echo json_encode([]);
+$con = conexion();
+
+$user_id = isset($_GET['user_id']) ? $_GET['user_id'] : '';
+
+if (empty($user_id)) {
+    echo json_encode(['error' => 'user_id requerido']);
     exit;
 }
 
-$user_id = $_GET['user_id'] ?? '';
+// Obtener todas las ubicaciones del usuario con su estado y el último estado
+$sql = "SELECT u1.lat, u1.lng, u1.fecha, u1.device_id as status,
+        (SELECT device_id FROM ubicaciones u2 WHERE u2.user_id = u1.user_id ORDER BY u2.fecha DESC LIMIT 1) as ultimo_status
+        FROM ubicaciones u1
+        WHERE u1.user_id = ?
+        ORDER BY u1.fecha ASC";
 
-if ($user_id == '') {
-    echo json_encode([]);
-    exit;
-}
+$stmt = $con->prepare($sql);
+$stmt->execute([$user_id]);
+$data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-$sql = "
-SELECT lat, lng, user_id, device_id, fecha
-FROM ubicaciones
-WHERE user_id = ?
-ORDER BY fecha ASC
-";
-
-$stmt = $conexion->prepare($sql);
-$stmt->bind_param("s", $user_id);
-$stmt->execute();
-
-$result = $stmt->get_result();
-
-$data = [];
-
-while ($row = $result->fetch_assoc()) {
-    $data[] = $row;
+// Asegurar que los campos tengan valores por defecto
+foreach ($data as &$row) {
+    $row['status'] = $row['status'] ?? 'inactivo';
+    $row['ultimo_status'] = $row['ultimo_status'] ?? 'inactivo';
 }
 
 echo json_encode($data);
-
-$stmt->close();
-$conexion->close();

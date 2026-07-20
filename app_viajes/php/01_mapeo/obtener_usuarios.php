@@ -1,24 +1,19 @@
 <?php
-header("Content-Type: application/json");
+include_once "../../funciones/funciones.php";
 
-$conexion = new mysqli("localhost", "root", "belgrado", "app_viajes");
+// Protegemos la página para operadores (3) o administrador (0)
+protegerPagina([0, 3]);
 
-if ($conexion->connect_error) {
-    echo json_encode([]);
-    exit;
-}
+$con = conexion();
 
-$sql = "SELECT DISTINCT user_id FROM ubicaciones ORDER BY user_id";
+// Obtener usuarios únicos de la tabla ubicaciones que tengan relación con choferes
+$sql = "SELECT DISTINCT u.user_id 
+        FROM ubicaciones u 
+        INNER JOIN choferes c ON u.user_id = c.movil
+        WHERE u.user_id IS NOT NULL AND u.user_id != ''
+        ORDER BY u.user_id ASC";
 
-$result = $conexion->query($sql);
-
-$usuarios = [];
-
-while ($row = $result->fetch_assoc()) {
-    $usuarios[] = $row['user_id'];
-}
+$stmt = $con->query($sql);
+$usuarios = $stmt->fetchAll(PDO::FETCH_COLUMN);
 
 echo json_encode($usuarios);
-
-$conexion->close();
-?>

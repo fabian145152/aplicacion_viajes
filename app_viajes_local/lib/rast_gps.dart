@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart'; // <-- IMPORTANTE: Para kDebugMode
 import 'package:http/http.dart' as http;
 import 'package:geolocator/geolocator.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 import 'dart:async';
 import 'dart:convert';
-import 'login.dart'; // <-- Importamos LoginPage para poder regresar al cerrar sesión
+import 'dart:io';
+import 'login.dart';
 
 class BotonCoordenadas extends StatefulWidget {
   final String numeroMovil;
-
   const BotonCoordenadas({super.key, required this.numeroMovil});
 
   @override
@@ -15,125 +17,145 @@ class BotonCoordenadas extends StatefulWidget {
 }
 
 class _BotonCoordenadasState extends State<BotonCoordenadas> {
-  bool estaActivo = false;
+  bool _isActive = false;
   Timer? _timer;
-  late TextEditingController _idController;
+  final TextEditingController _idController = TextEditingController();
+  bool _isSending = false;
+
+  final String _serverUrl =
+      'http://192.168.0.225/aplicacion_viajes/app_viajes/php/01_mapeo/recibir.php';
+
+  // Función para debug
+  void _log(String message) {
+    if (kDebugMode) {
+      print(message);
+    }
+  }
 
   @override
   void initState() {
     super.initState();
-    _idController = TextEditingController(text: widget.numeroMovil);
-  }
-
-  Future<void> enviarDatos(String status) async {
-    try {
-      Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-      );
-
-      final url = Uri.parse(
-        'http://192.168.0.225/app_viajes/php/01_mapeo/recibir.php',
-      );
-
-      final cuerpoJson = jsonEncode({
-        'lat': position.latitude,
-        'lng': position.longitude,
-        'usuario_id': _idController.text,
-        'status': status,
-      });
-
-      final respuesta = await http.post(
-        url,
-        headers: {"Content-Type": "application/json; charset=UTF-8"},
-        body: cuerpoJson,
-      );
-
-      if (respuesta.statusCode == 200) {
-        print("Enviado: ${respuesta.body}");
-      } else {
-        print("Error en servidor: Status ${respuesta.statusCode}");
-      }
-    } catch (e) {
-      print("Error de conexión: $e");
-    }
-  }
-
-  void controlarCiclo(bool activado) async {
-    if (activado) {
-      LocationPermission permiso = await Geolocator.checkPermission();
-
-      if (permiso == LocationPermission.denied) {
-        permiso = await Geolocator.requestPermission();
-        if (permiso == LocationPermission.denied) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Permiso de ubicación denegado.')),
-          );
-          setState(() {
-            estaActivo = false;
-          });
-          return;
-        }
-      }
-
-      if (permiso == LocationPermission.deniedForever) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Habilite la ubicación desde ajustes.')),
-        );
-        setState(() {
-          estaActivo = false;
-        });
-        return;
-      }
-
-      enviarDatos('activo');
-      _timer = Timer.periodic(const Duration(seconds: 5), (timer) {
-        enviarDatos('activo');
-      });
-    } else {
-      _timer?.cancel();
-      print("Iniciando ráfaga de cierre...");
-      await enviarDatos('inactivo');
-      await Future.delayed(const Duration(milliseconds: 500));
-      print("Proceso finalizado.");
-    }
-  }
-
-  // --- NUEVA FUNCIÓN PARA LOGOUT ---
-  void _cerrarSesion() async {
-    // 1. Si estaba transmitiendo, detenemos el timer y enviamos estado 'inactivo'
-    if (estaActivo) {
-      _timer?.cancel();
-      await enviarDatos('inactivo');
-    }
-
-    if (!mounted) return;
-
-    // 2. Navegamos al Login reemplazando la vista para que no pueda volver atrás con el botón físico
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const LoginPage()),
-    );
+    _idController.text = widget.numeroMovil;
+    WakelockPlus.enable();
   }
 
   @override
   void dispose() {
     _timer?.cancel();
     _idController.dispose();
+    WakelockPlus.disable();
     super.dispose();
+  }
+
+  Future<void> _sendLocation(String status) async {
+    if (_isSending) return;
+    _isSending = true;
+
+    try {
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        _log('❌ Sin permiso de ubicación');
+        _isSending = false;
+        return;
+      }
+
+      final position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      ).timeout(const Duration(seconds: 10));
+
+      final url = Uri.parse(_serverUrl);
+
+      final body = jsonEncode({
+        'lat': position.latitude,
+        'lng': position.longitude,
+        'usuario_id': _idController.text,
+        'status': status,
+      });
+
+      final response = await http
+          .post(
+            url,
+            headers: {"Content-Type": "application/json"},
+            body: body,
+          )
+          .timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        _log(
+            '✅ Enviado: ${position.latitude}, ${position.longitude} - Status: $status');
+      } else {
+        _log('❌ Error: ${response.statusCode} - Status: $status');
+      }
+    } on TimeoutException {
+      _log('❌ Timeout');
+    } on SocketException {
+      _log('❌ Error de red');
+    } catch (e) {
+      _log('❌ Error: $e');
+    } finally {
+      _isSending = false;
+    }
+  }
+
+  // Función para enviar el estado 3 veces
+  Future<void> _sendStatusMultipleTimes(String status) async {
+    _log('📤 Enviando estado "$status" 3 veces...');
+
+    // Enviar 3 veces con un pequeño delay entre cada envío
+    for (int i = 1; i <= 3; i++) {
+      _log('📤 Envío $i de 3 - Status: $status');
+      await _sendLocation(status);
+      // Esperar 500ms entre cada envío para no saturar
+      await Future.delayed(const Duration(milliseconds: 500));
+    }
+
+    _log('✅ Estado "$status" enviado 3 veces correctamente');
+  }
+
+  void _toggleTracking(bool active) async {
+    if (active) {
+      // Al activar: enviar "activo" 3 veces y luego iniciar el timer
+      _log('🟢 Activando seguimiento...');
+      await _sendStatusMultipleTimes('activo');
+
+      // Iniciar el timer para envíos periódicos
+      _timer = Timer.periodic(const Duration(seconds: 5), (_) {
+        _sendLocation('activo');
+      });
+    } else {
+      // Al desactivar: cancelar timer y enviar "inactivo" 3 veces
+      _log('🔴 Desactivando seguimiento...');
+      _timer?.cancel();
+      await _sendStatusMultipleTimes('inactivo');
+    }
+  }
+
+  void _logout() async {
+    if (_isActive) {
+      _timer?.cancel();
+      _log('🔄 Enviando estado inactivo antes de cerrar sesión...');
+      await _sendStatusMultipleTimes('inactivo');
+    }
+    if (mounted) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const LoginPage()),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Móvil N°: ${widget.numeroMovil}'),
-        centerTitle: true,
-        // Agregamos el botón de cerrar sesión en la parte derecha del AppBar
+        title: Text('Móvil: ${widget.numeroMovil}'),
+        backgroundColor: Colors.blue,
+        foregroundColor: Colors.white,
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout, color: Colors.redAccent),
-            tooltip: 'Cerrar Sesión',
-            onPressed: _cerrarSesion,
+            icon: const Icon(Icons.logout),
+            onPressed: _logout,
           ),
         ],
       ),
@@ -146,56 +168,52 @@ class _BotonCoordenadasState extends State<BotonCoordenadas> {
               child: TextField(
                 controller: _idController,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-                decoration: const InputDecoration(
-                  labelText: "Identificador del Móvil",
-                  border: OutlineInputBorder(),
-                ),
                 readOnly: true,
+                decoration: const InputDecoration(
+                  labelText: 'ID del Móvil',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.phone_android),
+                ),
               ),
             ),
             const SizedBox(height: 40),
             GestureDetector(
               onTap: () {
                 setState(() {
-                  estaActivo = !estaActivo;
-                  controlarCiclo(estaActivo);
+                  _isActive = !_isActive;
+                  _toggleTracking(_isActive);
                 });
               },
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 300),
-                width: 220,
-                height: 220,
+                width: 200,
+                height: 200,
                 decoration: BoxDecoration(
-                  color: estaActivo ? Colors.redAccent : Colors.green,
+                  color: _isActive ? Colors.red : Colors.green,
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: (estaActivo ? Colors.redAccent : Colors.green)
+                      color: (_isActive ? Colors.red : Colors.green)
                           .withOpacity(0.4),
-                      blurRadius: 15,
-                      offset: const Offset(0, 8),
+                      blurRadius: 20,
                     ),
                   ],
                 ),
                 child: Center(
-                  child: Row(
+                  child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
-                        estaActivo ? Icons.stop_circle : Icons.play_arrow,
+                        _isActive ? Icons.stop : Icons.play_arrow,
                         color: Colors.white,
-                        size: 30,
+                        size: 50,
                       ),
-                      const SizedBox(width: 10),
+                      const SizedBox(height: 10),
                       Text(
-                        estaActivo ? 'DETENER' : 'INICIAR',
+                        _isActive ? 'DETENER' : 'INICIAR',
                         style: const TextStyle(
                           color: Colors.white,
-                          fontSize: 20,
+                          fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -204,17 +222,34 @@ class _BotonCoordenadasState extends State<BotonCoordenadas> {
                 ),
               ),
             ),
-            if (estaActivo)
+            if (_isActive)
               const Padding(
-                padding: EdgeInsets.only(top: 25),
+                padding: EdgeInsets.only(top: 20),
                 child: Text(
-                  "Transmitiendo coordenadas en tiempo real...",
-                  style: TextStyle(
-                    fontStyle: FontStyle.italic,
-                    color: Colors.grey,
-                  ),
+                  '🟢 Enviando ubicación...',
+                  style: TextStyle(color: Colors.green),
                 ),
               ),
+            const SizedBox(height: 30),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.grey[100],
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Column(
+                children: [
+                  Text(
+                    'Servidor: 192.168.0.225',
+                    style: TextStyle(fontSize: 12),
+                  ),
+                  Text(
+                    '📤 Envía estado 3 veces al cambiar',
+                    style: TextStyle(fontSize: 11, color: Colors.blue),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
