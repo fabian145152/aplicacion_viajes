@@ -37,7 +37,8 @@ try {
             'res' => 'OK',
             'msg' => 'Login exitoso',
             'movil' => $result['movil'],
-            'nombre' => $result['nombre'] . ' ' . $result['apellido'],
+            'nombre' => $result['nombre'],
+            'apellido' => $result['apellido'],
             'user' => $result['user']
         ]);
     } else {

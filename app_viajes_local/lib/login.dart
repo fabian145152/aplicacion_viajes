@@ -74,13 +74,27 @@ class _LoginPageState extends State<LoginPage> {
 
           if (data['res'] == 'OK') {
             String movil = data['movil']?.toString() ?? '0';
+            // Obtener nombre y apellido de la respuesta
+            String nombre = data['nombre']?.toString() ?? '';
+            String apellido = data['apellido']?.toString() ?? '';
+            String nombreCompleto = '$nombre $apellido'.trim();
+
+            // Si no viene nombre y apellido, usar un valor por defecto
+            if (nombreCompleto.isEmpty) {
+              nombreCompleto = 'Chofer';
+            }
+
+            _log('👤 Nombre: $nombreCompleto');
 
             if (!mounted) return;
 
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (context) => BotonCoordenadas(numeroMovil: movil),
+                builder: (context) => BotonCoordenadas(
+                  numeroMovil: movil,
+                  nombreChofer: nombreCompleto, // Pasamos el nombre
+                ),
               ),
             );
           } else {
@@ -217,7 +231,7 @@ class _LoginPageState extends State<LoginPage> {
                 labelText: 'Usuario',
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.person),
-                hintText: 'Ej: 14952694',
+                hintText: 'Ej: 12345678',
               ),
               enabled: !_isLoading,
             ),
@@ -230,7 +244,7 @@ class _LoginPageState extends State<LoginPage> {
                 labelText: 'Contraseña',
                 border: const OutlineInputBorder(),
                 prefixIcon: const Icon(Icons.lock),
-                hintText: 'Ej: 145152',
+                hintText: 'Ej: 123456',
                 suffixIcon: IconButton(
                   icon: Icon(
                     _obscurePassword ? Icons.visibility : Icons.visibility_off,

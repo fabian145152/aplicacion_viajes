@@ -16,7 +16,7 @@ if (isset($_GET['editar'])) {
 $empresas = obtenerEmpresas();
 
 // Determinar el estado inicial para encender el botón correcto al editar o crear
-$estadoInicial = $viaje['estado'] ?? 'Inmediato';
+$estadoInicial = $viaje['estado'] ?? 'Pendiente';
 if (isset($viaje['diferido']) && $viaje['diferido'] == 'Si') {
     $estadoInicial = 'Diferido';
 }
