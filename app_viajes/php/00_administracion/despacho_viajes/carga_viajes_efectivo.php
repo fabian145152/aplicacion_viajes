@@ -293,7 +293,7 @@ if (isset($viaje['diferido']) && $viaje['diferido'] == 'Si') {
                                 📅 Diferido
                             </button>
                         </div>
-                        <input type="hidden" name="estado" id="estado_oculto" value="<?= $estadoInicial ?>">
+                        <input type="hidden" name="estado" id="estado_oculto" value="Pendiente">
                         <input type="hidden" name="diferido" id="diferido_oculto" value="<?= $viaje['diferido'] ?? 'No' ?>">
                     </div>
 

@@ -4,7 +4,6 @@ header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST, GET, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
 
-// Incluir funciones de conexión
 include_once "../../funciones/funciones.php";
 
 $input = file_get_contents('php://input');
@@ -21,18 +20,26 @@ if (empty($viaje_id) || empty($movil_id)) {
 try {
     $con = conexion();
 
-    // Primero verificar que el viaje existe y está pendiente
-    $checkSql = "SELECT id, estado FROM viajes_despacho WHERE id = :viaje_id AND estado = 'Pendiente'";
+    $checkSql = "SELECT id, estado, id_chofer FROM viajes_despacho WHERE id = :viaje_id";
     $checkStmt = $con->prepare($checkSql);
     $checkStmt->execute([':viaje_id' => $viaje_id]);
     $viaje = $checkStmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$viaje) {
-        echo json_encode(['res' => 'ERROR', 'msg' => 'El viaje no existe o ya fue asignado']);
+        echo json_encode(['res' => 'ERROR', 'msg' => 'El viaje no existe']);
         exit;
     }
 
-    // Asignar el viaje al móvil
+    if ($viaje['estado'] != 'Pendiente') {
+        echo json_encode(['res' => 'ERROR', 'msg' => 'El viaje ya fue asignado o cancelado']);
+        exit;
+    }
+
+    if ($viaje['id_chofer'] != 0 && $viaje['id_chofer'] != null) {
+        echo json_encode(['res' => 'ERROR', 'msg' => 'El viaje ya tiene un chofer asignado']);
+        exit;
+    }
+
     $sql = "UPDATE viajes_despacho 
             SET id_chofer = :movil_id,
                 estado = 'Asignado'
@@ -48,9 +55,11 @@ try {
         'res' => 'OK',
         'msg' => 'Viaje asignado correctamente al móvil ' . $movil_id
     ]);
+
 } catch (PDOException $e) {
     echo json_encode([
-        'res' => 'ERROR',
+        'res' => 'ERROR', 
         'msg' => 'Error al asignar viaje: ' . $e->getMessage()
     ]);
 }
+?>

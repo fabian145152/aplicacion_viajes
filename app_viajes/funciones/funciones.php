@@ -717,110 +717,77 @@ function obtenerCoordenadas($direccion)
 
 
 
-function guardarViaje($datos)
+function guardarViaje($data)
 {
-    global $db;
+    $con = conexion();
 
-    // Obtener coordenadas automáticamente
-    $origen = obtenerCoordenadas($datos['direccion_origen']);
-    $destino = obtenerCoordenadas($datos['direccion_destino']);
+    // ... validaciones ...
 
-    $origen_lat = $origen['lat'] ?? null;
-    $origen_lng = $origen['lng'] ?? null;
+    $sql = "INSERT INTO viajes_despacho (
+                cel_pasaj, 
+                nombre_pasaj, 
+                direccion_origen, 
+                direccion_destino,
+                obs_operador, 
+                obs_pasaj, 
+                estado, 
+                diferido, 
+                fecha, 
+                hora,
+                categoria_movil, 
+                origen_lat, 
+                origen_lng, 
+                destino_lat, 
+                destino_lng,
+                cc, 
+                centro_de_costo,  -- Cambiado de id_cc a centro_de_costo
+                id_autorizante, 
+                id_chofer
+            ) VALUES (
+                :cel_pasaj, 
+                :nombre_pasaj, 
+                :direccion_origen, 
+                :direccion_destino,
+                :obs_operador, 
+                :obs_pasaj, 
+                :estado, 
+                :diferido, 
+                :fecha, 
+                :hora,
+                :categoria_movil, 
+                :origen_lat, 
+                :origen_lng, 
+                :destino_lat, 
+                :destino_lng,
+                :cc, 
+                :centro_de_costo,  -- Cambiado de id_cc a centro_de_costo
+                :id_autorizante, 
+                0
+            )";
 
-    $destino_lat = $destino['lat'] ?? null;
-    $destino_lng = $destino['lng'] ?? null;
+    $stmt = $con->prepare($sql);
+    $stmt->execute([
+        ':cel_pasaj' => $data['cel_pasaj'],
+        ':nombre_pasaj' => $data['nombre_pasaj'],
+        ':direccion_origen' => $data['direccion_origen'] ?? '',
+        ':direccion_destino' => $data['direccion_destino'] ?? '',
+        ':obs_operador' => $data['obs_operador'] ?? '',
+        ':obs_pasaj' => $data['obs_pasaj'] ?? '',
+        ':estado' => 'Pendiente',
+        ':diferido' => $data['diferido'] ?? 'No',
+        ':fecha' => $data['fecha'] ?? date('Y-m-d'),
+        ':hora' => $data['hora'] ?? date('H:i'),
+        ':categoria_movil' => $data['categoria_movil'] ?? 'REMIS',
+        ':origen_lat' => $data['origen_lat'] ?? null,
+        ':origen_lng' => $data['origen_lng'] ?? null,
+        ':destino_lat' => $data['destino_lat'] ?? null,
+        ':destino_lng' => $data['destino_lng'] ?? null,
+        ':cc' => $data['cc'] ?? 0,
+        ':centro_de_costo' => $data['id_cc'] ?? 0,  // El campo del formulario se llama id_cc pero la BD se llama centro_de_costo
+        ':id_autorizante' => $data['id_autorizante'] ?? 0
+    ]);
 
-    // 🌟 Validar centro_de_costo: si no viene o viene vacío, le asignamos 0 por defecto
-    $centro_de_costo = !empty($datos['centro_de_costo']) ? (int)$datos['centro_de_costo'] : 0;
-
-    if (!empty($datos['id'])) {
-
-        // ACTUALIZAR
-        $sql = "UPDATE viajes_despacho SET
-                    cel_pasaj=?,
-                    nombre_pasaj=?,
-                    direccion_origen=?,
-                    direccion_destino=?,
-                    origen_lat=?,
-                    origen_lng=?,
-                    destino_lat=?,
-                    destino_lng=?,
-                    obs_operador=?,
-                    obs_pasaj=?,
-                    estado=?,                    
-                    fecha=?,
-                    hora=?,
-                    categoria_movil=?,
-                    cc=?,
-                    centro_de_costo=? -- 👈 Agregado aquí
-                WHERE id=?";
-
-        $stmt = $db->prepare($sql);
-
-        $stmt->execute([
-            $datos['cel_pasaj'],
-            $datos['nombre_pasaj'],
-            $datos['direccion_origen'],
-            $datos['direccion_destino'],
-            $origen_lat,
-            $origen_lng,
-            $destino_lat,
-            $destino_lng,
-            $datos['obs_operador'],
-            $datos['obs_pasaj'],
-            $datos['estado'],
-            $datos['fecha'],
-            $datos['hora'],
-            $datos['categoria_movil'],
-            $datos['cc'],
-            $centro_de_costo, // 👈 Agregado aquí
-            $datos['id']
-        ]);
-    } else {
-
-        // INSERTAR NUEVO
-        $sql = "INSERT INTO viajes_despacho
-                (   cel_pasaj,
-                    nombre_pasaj,
-                    direccion_origen,
-                    direccion_destino,
-                    origen_lat,
-                    origen_lng,
-                    destino_lat,
-                    destino_lng,
-                    obs_operador,
-                    obs_pasaj,
-                    estado,
-                    fecha,
-                    hora,
-                    categoria_movil,
-                    cc,
-                    centro_de_costo) -- 👈 Agregado aquí
-                VALUES
-                (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"; // 👈 Agregado un '?' extra (ahora son 16)
-
-        $stmt = $db->prepare($sql);
-
-        $stmt->execute([
-            $datos['cel_pasaj'],
-            $datos['nombre_pasaj'],
-            $datos['direccion_origen'],
-            $datos['direccion_destino'],
-            $origen_lat,
-            $origen_lng,
-            $destino_lat,
-            $destino_lng,
-            $datos['obs_operador'],
-            $datos['obs_pasaj'],
-            $datos['estado'],
-            $datos['fecha'],
-            $datos['hora'],
-            $datos['categoria_movil'],
-            $datos['cc'],
-            $centro_de_costo // 👈 Agregado aquí
-        ]);
-    }
+    return $con->lastInsertId();
 }
 
 

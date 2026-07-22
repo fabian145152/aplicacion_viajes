@@ -154,6 +154,7 @@ $empresas = obtenerEmpresas();
 
         function seleccionarEstado(estado) {
             const inputEstado = document.getElementById("estado_oculto");
+            const inputDiferido = document.getElementById("diferido_oculto");
             const btnInmediato = document.getElementById("btn_inmediato");
             const btnDiferido = document.getElementById("btn_diferido");
             const contenedorFechaHora = document.getElementById("contenedor_fecha_hora");
@@ -162,20 +163,24 @@ $empresas = obtenerEmpresas();
 
             if (!inputEstado || !btnInmediato || !btnDiferido || !contenedorFechaHora) return;
 
-            inputEstado.value = estado;
+            // El estado SIEMPRE es 'Pendiente' para ambos casos
+            inputEstado.value = 'Pendiente';
 
             if (estado === 'Diferido') {
                 btnDiferido.classList.add('activo-diferido');
                 btnInmediato.classList.remove('activo-inmediato');
                 contenedorFechaHora.style.display = 'flex';
+                if (inputDiferido) inputDiferido.value = 'Si';
                 if (fecha && hora) {
                     fecha.readOnly = false;
                     hora.readOnly = false;
                 }
             } else {
+                // Inmediato
                 btnInmediato.classList.add('activo-inmediato');
                 btnDiferido.classList.remove('activo-diferido');
                 contenedorFechaHora.style.display = 'none';
+                if (inputDiferido) inputDiferido.value = 'No';
                 if (!editandoViaje) {
                     fechaActual();
                 }
@@ -312,7 +317,8 @@ $empresas = obtenerEmpresas();
                                 📅 Diferido
                             </button>
                         </div>
-                        <input type="hidden" name="estado" id="estado_oculto" value="<?= $viaje['estado'] ?? 'Inmediato' ?>">
+                        <input type="hidden" name="estado" id="estado_oculto" value="<?= $viaje['estado'] ?? 'Pendiente' ?>">
+                        <input type="hidden" name="diferido" id="diferido_oculto" value="<?= $viaje['diferido'] ?? 'No' ?>">
                     </div>
 
                     <div class="form-group">

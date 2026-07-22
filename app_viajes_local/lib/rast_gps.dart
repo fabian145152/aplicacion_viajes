@@ -221,7 +221,7 @@ class _BotonCoordenadasState extends State<BotonCoordenadas> {
           // Refrescar lista
           _obtenerViajesPendientes();
         } else {
-          _mostrarMensaje('❌ Error al asignar viaje');
+          _mostrarMensaje('❌ ${data['msg'] ?? 'Error al asignar viaje'}');
         }
       }
     } catch (e) {
@@ -450,6 +450,8 @@ class _BotonCoordenadasState extends State<BotonCoordenadas> {
                     itemCount: _viajesPendientes.length,
                     itemBuilder: (context, index) {
                       final viaje = _viajesPendientes[index];
+                      final esDiferido = viaje['diferido'] == 'Si';
+
                       return Card(
                         elevation: 3,
                         margin: const EdgeInsets.only(bottom: 12),
@@ -477,27 +479,72 @@ class _BotonCoordenadasState extends State<BotonCoordenadas> {
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 4,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Colors.green[100],
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Text(
-                                      viaje['categoria_movil'] ?? 'REMIS',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.green[800],
+                                  Row(
+                                    children: [
+                                      // Mostrar si es diferido
+                                      if (esDiferido)
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 8, vertical: 4),
+                                          decoration: BoxDecoration(
+                                            color: Colors.orange[100],
+                                            borderRadius:
+                                                BorderRadius.circular(12),
+                                          ),
+                                          child: Text(
+                                            '📅 DIFERIDO',
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.orange[800],
+                                            ),
+                                          ),
+                                        ),
+                                      const SizedBox(width: 4),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 8, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: Colors.green[100],
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                        ),
+                                        child: Text(
+                                          viaje['categoria_movil'] ?? 'REMIS',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.green[800],
+                                          ),
+                                        ),
                                       ),
-                                    ),
+                                    ],
                                   ),
                                 ],
                               ),
                               const Divider(),
+
+                              // Fecha y hora si es diferido
+                              if (esDiferido && viaje['fecha'] != null)
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 8),
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.calendar_today,
+                                          size: 16, color: Colors.orange[700]),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        '${viaje['fecha']} ${viaje['hora'] ?? ''}',
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w500,
+                                          color: Colors.orange[700],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+
                               // Pasajero
                               Row(
                                 children: [
@@ -513,6 +560,7 @@ class _BotonCoordenadasState extends State<BotonCoordenadas> {
                                 ],
                               ),
                               const SizedBox(height: 6),
+
                               // Celular
                               Row(
                                 children: [
@@ -520,12 +568,14 @@ class _BotonCoordenadasState extends State<BotonCoordenadas> {
                                       size: 18, color: Colors.grey),
                                   const SizedBox(width: 8),
                                   Text(
-                                    viaje['cel_pasaj'] ?? 'Sin celular',
+                                    viaje['cel_pasaj']?.toString() ??
+                                        'Sin celular',
                                     style: const TextStyle(fontSize: 14),
                                   ),
                                 ],
                               ),
                               const SizedBox(height: 6),
+
                               // Origen
                               Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -543,6 +593,7 @@ class _BotonCoordenadasState extends State<BotonCoordenadas> {
                                   ),
                                 ],
                               ),
+
                               // Destino
                               Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -561,9 +612,10 @@ class _BotonCoordenadasState extends State<BotonCoordenadas> {
                                   ),
                                 ],
                               ),
+
                               // Observaciones
                               if (viaje['obs_operador'] != null &&
-                                  viaje['obs_operador'].isNotEmpty)
+                                  viaje['obs_operador'].toString().isNotEmpty)
                                 Padding(
                                   padding: const EdgeInsets.only(top: 6),
                                   child: Row(
@@ -585,14 +637,18 @@ class _BotonCoordenadasState extends State<BotonCoordenadas> {
                                     ],
                                   ),
                                 ),
+
                               const SizedBox(height: 12),
+
                               // Botón aceptar viaje
                               SizedBox(
                                 width: double.infinity,
                                 child: ElevatedButton(
                                   onPressed: () => _asignarViaje(viaje['id']),
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.green,
+                                    backgroundColor: esDiferido
+                                        ? Colors.orange
+                                        : Colors.green,
                                     foregroundColor: Colors.white,
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(8),
@@ -600,14 +656,20 @@ class _BotonCoordenadasState extends State<BotonCoordenadas> {
                                     padding: const EdgeInsets.symmetric(
                                         vertical: 12),
                                   ),
-                                  child: const Row(
+                                  child: Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      Icon(Icons.check_circle, size: 20),
-                                      SizedBox(width: 8),
+                                      Icon(
+                                          esDiferido
+                                              ? Icons.schedule
+                                              : Icons.check_circle,
+                                          size: 20),
+                                      const SizedBox(width: 8),
                                       Text(
-                                        'ACEPTAR VIAJE',
-                                        style: TextStyle(
+                                        esDiferido
+                                            ? 'ACEPTAR VIAJE DIFERIDO'
+                                            : 'ACEPTAR VIAJE',
+                                        style: const TextStyle(
                                           fontWeight: FontWeight.bold,
                                           fontSize: 14,
                                         ),
