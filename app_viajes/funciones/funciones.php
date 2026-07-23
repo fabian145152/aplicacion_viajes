@@ -723,6 +723,9 @@ function guardarViaje($data)
 
     // ... validaciones ...
 
+    // El estado viene del formulario: 'Pendiente' o 'Diferido'
+    $estado = $data['estado'] ?? 'Pendiente';
+
     $sql = "INSERT INTO viajes_despacho (
                 cel_pasaj, 
                 nombre_pasaj, 
@@ -731,7 +734,6 @@ function guardarViaje($data)
                 obs_operador, 
                 obs_pasaj, 
                 estado, 
-                diferido, 
                 fecha, 
                 hora,
                 categoria_movil, 
@@ -740,7 +742,7 @@ function guardarViaje($data)
                 destino_lat, 
                 destino_lng,
                 cc, 
-                centro_de_costo,  -- Cambiado de id_cc a centro_de_costo
+                centro_de_costo,
                 id_autorizante, 
                 id_chofer
             ) VALUES (
@@ -751,7 +753,6 @@ function guardarViaje($data)
                 :obs_operador, 
                 :obs_pasaj, 
                 :estado, 
-                :diferido, 
                 :fecha, 
                 :hora,
                 :categoria_movil, 
@@ -760,7 +761,7 @@ function guardarViaje($data)
                 :destino_lat, 
                 :destino_lng,
                 :cc, 
-                :centro_de_costo,  -- Cambiado de id_cc a centro_de_costo
+                :centro_de_costo,
                 :id_autorizante, 
                 0
             )";
@@ -773,8 +774,7 @@ function guardarViaje($data)
         ':direccion_destino' => $data['direccion_destino'] ?? '',
         ':obs_operador' => $data['obs_operador'] ?? '',
         ':obs_pasaj' => $data['obs_pasaj'] ?? '',
-        ':estado' => 'Pendiente',
-        ':diferido' => $data['diferido'] ?? 'No',
+        ':estado' => $estado,  // 'Pendiente' o 'Diferido'
         ':fecha' => $data['fecha'] ?? date('Y-m-d'),
         ':hora' => $data['hora'] ?? date('H:i'),
         ':categoria_movil' => $data['categoria_movil'] ?? 'REMIS',
@@ -783,7 +783,7 @@ function guardarViaje($data)
         ':destino_lat' => $data['destino_lat'] ?? null,
         ':destino_lng' => $data['destino_lng'] ?? null,
         ':cc' => $data['cc'] ?? 0,
-        ':centro_de_costo' => $data['id_cc'] ?? 0,  // El campo del formulario se llama id_cc pero la BD se llama centro_de_costo
+        ':centro_de_costo' => $data['id_cc'] ?? 0,
         ':id_autorizante' => $data['id_autorizante'] ?? 0
     ]);
 

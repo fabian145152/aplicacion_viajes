@@ -2,35 +2,52 @@
 include_once "../../../funciones/funciones.php";
 protegerPagina([0, 3]);
 
-// Pasar diferidos a pendientes
-// Pasar diferidos a inmediatos
 $conn = conexion();
-include_once "../seteos/min_diferido.php";
 
-// Nota: Asegúrate de que dentro de 'min_diferido.php' se le asigne un valor numérico a $min_diferido (ej: $min_diferido = 15;)
+// Incluir la variable de minutos de anticipación
+include_once "../seteos/min_diferido.php"; // Define $min_diferido (ej: 10)
 
-echo "Minutos Diferido: " . $min_diferido . "<br>";
-
-$minutosConfigurados = $min_diferido; // valor original, para el aviso de viajes vencidos
-$min_diferido = $min_diferido - 1;
-
-
-
-echo "<strong>Hora del Servidor: </strong>" . date('H:i:s');
-//echo "<strong>Zona Horaria PHP:</strong> " . date_default_timezone_get();
-
-
+// =============================================
+// CONVERTIR pre_viaje a Diferido cuando falta poco tiempo
+// =============================================
 $sql = "UPDATE viajes_despacho
-SET estado = CASE
-    WHEN TIMESTAMPDIFF(MINUTE, NOW(), TIMESTAMP(fecha, hora)) > ? THEN 'Diferido'
-    ELSE 'Inmediato'
-END
-WHERE estado IN ('Diferido', 'Inmediato')
-";
+        SET estado = 'Diferido'
+        WHERE estado = 'pre_viaje'
+        AND TIMESTAMPDIFF(MINUTE, NOW(), TIMESTAMP(fecha, hora)) <= ?
+        AND TIMESTAMPDIFF(MINUTE, NOW(), TIMESTAMP(fecha, hora)) > 0";
 
 $stmt = $conn->prepare($sql);
 $stmt->execute([$min_diferido]);
 
+echo "Minutos diferidos configurados: $min_diferido<br>";
+
+// =============================================
+// CONVERTIR Diferido a Pendiente si ya pasó la hora
+// =============================================
+$sql = "UPDATE viajes_despacho
+        SET estado = 'Pendiente'
+        WHERE estado = 'Diferido'
+        AND TIMESTAMPDIFF(MINUTE, NOW(), TIMESTAMP(fecha, hora)) <= 0
+        AND (id_chofer = 0 OR id_chofer IS NULL)";
+
+$stmt = $conn->prepare($sql);
+$stmt->execute();
+
+// =============================================
+// RESTABLECER pre_viaje que están en Diferido pero aún no deberían
+// =============================================
+$sql = "UPDATE viajes_despacho
+        SET estado = 'pre_viaje'
+        WHERE estado = 'Diferido'
+        AND TIMESTAMPDIFF(MINUTE, NOW(), TIMESTAMP(fecha, hora)) > ?";
+
+$stmt = $conn->prepare($sql);
+$stmt->execute([$min_diferido]);
+
+// =============================================
+// DEFINIR $minutosConfigurados para los viajes vencidos
+// =============================================
+$minutosConfigurados = $min_diferido;
 
 // DESASIGNAR MOVIL
 if (isset($_GET['desasignar'])) {
@@ -92,8 +109,8 @@ $choferes = array_values(array_filter($choferes, function ($c) use ($idsChoferes
     return in_array($c['id'], $idsChoferesDisponibles);
 }));
 
-/* CONTADORES */
 $contadores = [
+    'pre_viaje' => 0,
     'inmediato' => 0,
     'pendiente' => 0,
     'asignado' => 0,
@@ -105,7 +122,6 @@ $contadores = [
 
 foreach ($todosLosViajes as $v) {
     $estado = strtolower(trim($v['estado']));
-
     if (isset($contadores[$estado])) {
         $contadores[$estado]++;
     }
@@ -125,7 +141,8 @@ if ($filtro != '') {
             'inmediato',
             'pendiente',
             'asignado',
-            'en curso'
+            'en curso',
+            'diferido'
         ]);
     });
 }
@@ -148,9 +165,7 @@ usort($viajes, function ($a, $b) {
     return $b['id'] <=> $a['id'];
 });
 
-/* IDs de viajes VENCIDOS: ya pasó su fecha/hora programada por más minutos
-   de los configurados en el ajuste de temporizador, y todavía no fueron
-   completados ni cancelados (para el aviso por JS) */
+/* IDs de viajes VENCIDOS */
 $idsVencidos = [];
 foreach ($todosLosViajes as $v) {
     $estado = strtolower(trim($v['estado']));
@@ -201,13 +216,12 @@ foreach ($todosLosViajes as $v) {
             <div class="menu-viajes">
                 <a href="carga_viajes.php">+ Nuevo Viaje</a>
                 <a href="../../01_mapeo/mapa_de_viajes.php" target="_blank">Mapa</a>
-                <a href="lista_viajes.php">Todos (<?= $contadores['inmediato'] + $contadores['pendiente'] + $contadores['asignado'] + $contadores['en curso'] ?>)</a>
-                <a href="?estado=inmediato" style="background: #e2e3e5; color:#000;">Inmediatos (<?= $contadores['inmediato'] ?>)</a>
+                <a href="lista_viajes.php">Todos (<?= $contadores['inmediato'] + $contadores['pendiente'] + $contadores['asignado'] + $contadores['en curso'] + $contadores['diferido'] + $contadores['pre_viaje'] ?>)</a>
+                <a href="?estado=pre_viaje" style="background: #e8d5f5; color:#000;">Pre-Viajes (<?= $contadores['pre_viaje'] ?>)</a>
                 <a href="?estado=pendiente" style="background: #fff3cd; color:#000;">Pendientes (<?= $contadores['pendiente'] ?>)</a>
-                <a href="?estado=asignado" style="background: #d1ecf1; color:#000;">Asignados (<?= $contadores['asignado'] ?>)</a>
-
-                <a href="?estado=en curso" style="background: #d4edda; color:#000;">P. a bordo (<?= $contadores['en curso'] ?>)</a>
                 <a href="?estado=diferido" style="background: #e2d6c3; color:#000;">Diferidos (<?= $contadores['diferido'] ?>)</a>
+                <a href="?estado=asignado" style="background: #d1ecf1; color:#000;">Asignados (<?= $contadores['asignado'] ?>)</a>
+                <a href="?estado=en curso" style="background: #d4edda; color:#000;">P. a bordo (<?= $contadores['en curso'] ?>)</a>
                 <a href="?estado=completado" style="background: #d6e9ff; color:#000;">Completados (<?= $contadores['completado'] ?>)</a>
                 <a href="?estado=cancelado" style="background: #f8d7da; color:#000;">Cancelados (<?= $contadores['cancelado'] ?>)</a>
             </div>
@@ -242,6 +256,9 @@ foreach ($todosLosViajes as $v) {
                             <?php
                             $fondo = '#ffffff';
                             switch (strtolower(trim($v['estado']))) {
+                                case 'pre_viaje':
+                                    $fondo = '#e8d5f5';
+                                    break;
                                 case 'inmediato':
                                     $fondo = '#e2e3e5';
                                     break;
@@ -282,10 +299,7 @@ foreach ($todosLosViajes as $v) {
                                 <td><?= $v['id'] ?></td>
 
                                 <td style="text-align: center; font-weight: bold;">
-                                    <?php
-                                    // SOLO si el filtro actual es 'asignado' y el viaje tiene número de móvil, mostramos el recuadro azul
-                                    if (strtolower($filtro) === 'asignado' && !empty($v['numero_movil'])):
-                                    ?>
+                                    <?php if (strtolower($filtro) === 'asignado' && !empty($v['numero_movil'])): ?>
                                         <span style="background-color: #007bff; color: white; padding: 3px 8px; border-radius: 4px; font-size: 13px;">
                                             M-<?= htmlspecialchars($v['numero_movil']) ?>
                                         </span>
@@ -295,18 +309,18 @@ foreach ($todosLosViajes as $v) {
                                 </td>
 
                                 <td><?= htmlspecialchars($v['nombre_pasaj']) ?></td>
-
                                 <td><?= htmlspecialchars($v['cel_pasaj']) ?></td>
                                 <td><?= htmlspecialchars($v['direccion_origen']) ?></td>
                                 <td><?= htmlspecialchars($v['direccion_destino']) ?></td>
-
-
                                 <td class="col-observaciones"><?= htmlspecialchars($v['obs_operador']) ?></td>
                                 <td class="col-observaciones"><?= htmlspecialchars($v['obs_pasaj']) ?></td>
                                 <td>
                                     <?php
                                     $color = '#000';
                                     switch (strtolower(trim($v['estado']))) {
+                                        case 'pre_viaje':
+                                            $color = '#8B5CF6';
+                                            break;
                                         case 'inmediato':
                                             $color = '#6c757d';
                                             break;
@@ -343,8 +357,6 @@ foreach ($todosLosViajes as $v) {
 
                                 <td><?= ($v['fecha'] === '0000-00-00' || empty($v['fecha'])) ? '' : htmlspecialchars($v['fecha']) ?></td>
                                 <td><?= empty($v['hora']) ? '' : htmlspecialchars($v['hora']) ?></td>
-
-
                                 <td><?= htmlspecialchars($v['categoria_movil']) ?></td>
                                 <td style="text-align:center;">
                                     <?php $gps_ok = ($v['origen_lat'] < 0) && ($v['origen_lng'] < 0); ?>
@@ -364,6 +376,7 @@ foreach ($todosLosViajes as $v) {
         </div>
     </div>
 
+    <!-- MODALES -->
     <div id="modalAsignar" class="modal-asignar">
         <div class="modal-asignar-content">
             <span class="close-modal" onclick="cerrarModalAsignar()">&times;</span>

@@ -2,7 +2,7 @@
 // ==============================================================
 // CONFIGURACIÓN GLOBAL AUTOMÁTICA DE TIEMPOS
 // ==============================================================
-$min_diferido = 10;
+$min_diferido = 2;
 if (!defined('MIN_DIFERIDO')) {
     define('MIN_DIFERIDO', $min_diferido);
 }

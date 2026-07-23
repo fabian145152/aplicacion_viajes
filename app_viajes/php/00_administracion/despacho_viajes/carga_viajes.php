@@ -154,7 +154,6 @@ $empresas = obtenerEmpresas();
 
         function seleccionarEstado(estado) {
             const inputEstado = document.getElementById("estado_oculto");
-            const inputDiferido = document.getElementById("diferido_oculto");
             const btnInmediato = document.getElementById("btn_inmediato");
             const btnDiferido = document.getElementById("btn_diferido");
             const contenedorFechaHora = document.getElementById("contenedor_fecha_hora");
@@ -163,24 +162,22 @@ $empresas = obtenerEmpresas();
 
             if (!inputEstado || !btnInmediato || !btnDiferido || !contenedorFechaHora) return;
 
-            // El estado SIEMPRE es 'Pendiente' para ambos casos
-            inputEstado.value = 'Pendiente';
-
             if (estado === 'Diferido') {
+                // Cuando se selecciona Diferido, se guarda como pre_viaje
+                inputEstado.value = 'pre_viaje';
                 btnDiferido.classList.add('activo-diferido');
                 btnInmediato.classList.remove('activo-inmediato');
                 contenedorFechaHora.style.display = 'flex';
-                if (inputDiferido) inputDiferido.value = 'Si';
                 if (fecha && hora) {
                     fecha.readOnly = false;
                     hora.readOnly = false;
                 }
             } else {
-                // Inmediato
+                // Cuando se selecciona Pendiente
+                inputEstado.value = 'Pendiente';
                 btnInmediato.classList.add('activo-inmediato');
                 btnDiferido.classList.remove('activo-diferido');
                 contenedorFechaHora.style.display = 'none';
-                if (inputDiferido) inputDiferido.value = 'No';
                 if (!editandoViaje) {
                     fechaActual();
                 }
@@ -310,14 +307,14 @@ $empresas = obtenerEmpresas();
                     <div class="form-group">
                         <label>Estado / Modalidad del Viaje</label>
                         <div class="grupo-botones-estado">
-                            <button type="button" id="btn_inmediato" class="btn-switch" onclick="seleccionarEstado('Inmediato')">
-                                ⚡ Inmediato
+                            <button type="button" id="btn_inmediato" class="btn-switch" onclick="seleccionarEstado('Pendiente')">
+                                ⚡ Pendiente
                             </button>
                             <button type="button" id="btn_diferido" class="btn-switch" onclick="seleccionarEstado('Diferido')">
                                 📅 Diferido
                             </button>
                         </div>
-                        <input type="hidden" name="estado" id="estado_oculto" value="<?= $viaje['estado'] ?? 'Pendiente' ?>">
+                        <input type="hidden" name="estado" id="estado_oculto" value="<?= $viaje['estado'] ?? 'pre_viaje' ?>">
                         <input type="hidden" name="diferido" id="diferido_oculto" value="<?= $viaje['diferido'] ?? 'No' ?>">
                     </div>
 

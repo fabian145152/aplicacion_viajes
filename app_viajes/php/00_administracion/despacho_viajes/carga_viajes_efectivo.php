@@ -158,7 +158,6 @@ if (isset($viaje['diferido']) && $viaje['diferido'] == 'Si') {
         // 🚀 FUNCIÓN PARA MANEJAR LOS BOTONES DE ESTADO / MODALIDAD
         function seleccionarEstado(estado) {
             const inputEstado = document.getElementById("estado_oculto");
-            const inputDiferido = document.getElementById("diferido_oculto");
             const btnInmediato = document.getElementById("btn_inmediato");
             const btnDiferido = document.getElementById("btn_diferido");
             const contenedorFechaHora = document.getElementById("contenedor_fecha_hora");
@@ -167,22 +166,21 @@ if (isset($viaje['diferido']) && $viaje['diferido'] == 'Si') {
 
             if (!inputEstado || !btnInmediato || !btnDiferido || !contenedorFechaHora) return;
 
-            inputEstado.value = estado;
-
             if (estado === 'Diferido') {
+                inputEstado.value = 'Diferido';
                 btnDiferido.classList.add('activo-diferido');
                 btnInmediato.classList.remove('activo-inmediato');
                 contenedorFechaHora.style.display = 'flex';
-                if (inputDiferido) inputDiferido.value = 'Si';
                 if (fecha && hora) {
                     fecha.readOnly = false;
                     hora.readOnly = false;
                 }
             } else {
+                // Inmediato = Pendiente
+                inputEstado.value = 'Pendiente';
                 btnInmediato.classList.add('activo-inmediato');
                 btnDiferido.classList.remove('activo-diferido');
                 contenedorFechaHora.style.display = 'none';
-                if (inputDiferido) inputDiferido.value = 'No';
                 if (!editandoViaje) {
                     fechaActual();
                 }
@@ -286,15 +284,14 @@ if (isset($viaje['diferido']) && $viaje['diferido'] == 'Si') {
                     <div class="form-group">
                         <label>Estado / Modalidad del Viaje</label>
                         <div class="grupo-botones-estado">
-                            <button type="button" id="btn_inmediato" class="btn-switch" onclick="seleccionarEstado('Inmediato')">
-                                ⚡ Inmediato
+                            <button type="button" id="btn_inmediato" class="btn-switch" onclick="seleccionarEstado('Pendiente')">
+                                ⚡ Pendiente
                             </button>
                             <button type="button" id="btn_diferido" class="btn-switch" onclick="seleccionarEstado('Diferido')">
                                 📅 Diferido
                             </button>
                         </div>
-                        <input type="hidden" name="estado" id="estado_oculto" value="Pendiente">
-                        <input type="hidden" name="diferido" id="diferido_oculto" value="<?= $viaje['diferido'] ?? 'No' ?>">
+                        <input type="hidden" name="estado" id="estado_oculto" value="<?= $viaje['estado'] ?? 'pre_viaje' ?>">
                     </div>
 
                     <div class="form-group">

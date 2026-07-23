@@ -450,7 +450,8 @@ class _BotonCoordenadasState extends State<BotonCoordenadas> {
                     itemCount: _viajesPendientes.length,
                     itemBuilder: (context, index) {
                       final viaje = _viajesPendientes[index];
-                      final esDiferido = viaje['diferido'] == 'Si';
+                      // CAMBIO IMPORTANTE: usar estado en lugar de diferido
+                      final esDiferido = viaje['estado'] == 'Diferido';
 
                       return Card(
                         elevation: 3,
