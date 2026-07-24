@@ -9,7 +9,59 @@ include_once "../../funciones/funciones.php";
 try {
     $con = conexion();
 
-    // Solo devolver viajes con estado 'Pendiente' o 'Diferido'
+    // Definir valor por defecto para los minutos de anticipación
+    $min_diferido = 10; // Valor por defecto
+
+    // Intentar incluir el archivo de configuración si existe
+    $rutaSeteos = "../../00_administracion/seteos/min_diferido.php";
+    if (file_exists($rutaSeteos)) {
+        include_once $rutaSeteos;
+    } else {
+        // Si no existe, intentar otra ruta
+        $rutaSeteos = "../seteos/min_diferido.php";
+        if (file_exists($rutaSeteos)) {
+            include_once $rutaSeteos;
+        }
+    }
+
+    // =============================================
+    // CONVERTIR pre_viaje a Diferido cuando falta poco tiempo
+    // =============================================
+    $sql = "UPDATE viajes_despacho
+            SET estado = 'Diferido'
+            WHERE estado = 'pre_viaje'
+            AND TIMESTAMPDIFF(MINUTE, NOW(), TIMESTAMP(fecha, hora)) <= ?
+            AND TIMESTAMPDIFF(MINUTE, NOW(), TIMESTAMP(fecha, hora)) > 0";
+
+    $stmt = $con->prepare($sql);
+    $stmt->execute([$min_diferido]);
+
+    // =============================================
+    // CONVERTIR Diferido a Pendiente si ya pasó la hora
+    // =============================================
+    $sql = "UPDATE viajes_despacho
+            SET estado = 'Pendiente'
+            WHERE estado = 'Diferido'
+            AND TIMESTAMPDIFF(MINUTE, NOW(), TIMESTAMP(fecha, hora)) <= 0
+            AND (id_chofer = 0 OR id_chofer IS NULL)";
+
+    $stmt = $con->prepare($sql);
+    $stmt->execute();
+
+    // =============================================
+    // RESTABLECER pre_viaje que están en Diferido pero aún no deberían
+    // =============================================
+    $sql = "UPDATE viajes_despacho
+            SET estado = 'pre_viaje'
+            WHERE estado = 'Diferido'
+            AND TIMESTAMPDIFF(MINUTE, NOW(), TIMESTAMP(fecha, hora)) > ?";
+
+    $stmt = $con->prepare($sql);
+    $stmt->execute([$min_diferido]);
+
+    // =============================================
+    // OBTENER VIAJES PARA EL CELULAR
+    // =============================================
     $sql = "SELECT 
                 v.id,
                 v.nombre_pasaj,
@@ -27,9 +79,10 @@ try {
                 v.fecha,
                 v.hora,
                 v.cc,
+                e.id_empresa as numero_cuenta,
                 e.razon_social as empresa_nombre
             FROM viajes_despacho v
-            LEFT JOIN cuenta_empresa e ON v.cc = e.id_empresa
+            LEFT JOIN cuenta_empresa e ON v.cc = e.id
             WHERE v.estado IN ('Pendiente', 'Diferido')
             AND (v.id_chofer = 0 OR v.id_chofer IS NULL)
             ORDER BY 
@@ -48,9 +101,11 @@ try {
         'res' => 'OK',
         'viajes' => $result
     ]);
+
 } catch (PDOException $e) {
     echo json_encode([
-        'res' => 'ERROR',
-        'msg' => 'Error de base datos: ' . $e->getMessage()
+        'res' => 'ERROR', 
+        'msg' => 'Error de base de datos: ' . $e->getMessage()
     ]);
 }
+?>

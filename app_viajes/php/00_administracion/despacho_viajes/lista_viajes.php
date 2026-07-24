@@ -237,8 +237,8 @@ foreach ($todosLosViajes as $v) {
                             <th>Celular</th>
                             <th>Origen</th>
                             <th>Destino</th>
-                            <th>Obs operador</th>
                             <th>Obs chofer</th>
+                            <th>Obs operador</th>
                             <th>Estado</th>
                             <?php if (strtolower($filtro) === 'cancelado'): ?>
                                 <th style="background-color: #dc3545; color: white;">Motivo Cancelación</th>
@@ -312,8 +312,8 @@ foreach ($todosLosViajes as $v) {
                                 <td><?= htmlspecialchars($v['cel_pasaj']) ?></td>
                                 <td><?= htmlspecialchars($v['direccion_origen']) ?></td>
                                 <td><?= htmlspecialchars($v['direccion_destino']) ?></td>
-                                <td class="col-observaciones"><?= htmlspecialchars($v['obs_operador']) ?></td>
                                 <td class="col-observaciones"><?= htmlspecialchars($v['obs_pasaj']) ?></td>
+                                <td class="col-observaciones"><?= htmlspecialchars($v['obs_operador']) ?></td>
                                 <td>
                                     <?php
                                     $color = '#000';

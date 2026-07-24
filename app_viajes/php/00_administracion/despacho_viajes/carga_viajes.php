@@ -293,13 +293,12 @@ $empresas = obtenerEmpresas();
                         <input type="text" name="cel_pasaj" id="cel_pasaj" value="<?= htmlspecialchars($viaje['cel_pasaj'] ?? '') ?>" required>
                     </div>
                     <div class="form-group">
-                        <label>Observaciones Operador</label>
-                        <textarea name="obs_operador" rows="3"><?= $viaje['obs_operador'] ?? '' ?></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Observaciones Pasajero, datos del viaje</label>
+                        <label>Observaciones las ve solo el Operador</label>
                         <textarea name="obs_pasaj" rows="3"><?= $viaje['obs_pasaj'] ?? '' ?></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Observaciones del viaje, las ve solo el chofer</label>
+                        <textarea name="obs_operador" rows="3"><?= $viaje['obs_operador'] ?? '' ?></textarea>
                     </div>
                 </div>
 

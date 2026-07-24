@@ -1,222 +1,415 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 import 'dart:async';
-import 'dart:convert';
-import 'login.dart'; // <-- Importamos LoginPage para poder regresar al cerrar sesión
+import 'login.dart';
+import 'services/viaje_service.dart';
+import 'widgets/viaje_card.dart';
 
 class BotonCoordenadas extends StatefulWidget {
   final String numeroMovil;
-
-  const BotonCoordenadas({super.key, required this.numeroMovil});
+  final String nombreChofer;
+  const BotonCoordenadas({
+    super.key,
+    required this.numeroMovil,
+    required this.nombreChofer,
+  });
 
   @override
   State<BotonCoordenadas> createState() => _BotonCoordenadasState();
 }
 
 class _BotonCoordenadasState extends State<BotonCoordenadas> {
-  bool estaActivo = false;
+  bool _isActive = false;
   Timer? _timer;
-  late TextEditingController _idController;
+  Timer? _welcomeTimer;
+  Timer? _viajesTimer;
+  bool _isSending = false;
+  List<dynamic> _viajesPendientes = [];
+  bool _cargandoViajes = false;
+
+  late ViajeService _viajeService;
+
+  // Función para debug
+  void _log(String message) {
+    if (kDebugMode) {
+      print(message);
+    }
+  }
 
   @override
   void initState() {
     super.initState();
-    _idController = TextEditingController(text: widget.numeroMovil);
-  }
-
-  Future<void> enviarDatos(String status) async {
-    try {
-      Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-      );
-
-      final url = Uri.parse(
-        'http://181.47.100.96:8081/app_viajes/php/01_mapeo/recibir.php',
-      );
-
-      final cuerpoJson = jsonEncode({
-        'lat': position.latitude,
-        'lng': position.longitude,
-        'usuario_id': _idController.text,
-        'status': status,
-      });
-
-      final respuesta = await http.post(
-        url,
-        headers: {"Content-Type": "application/json; charset=UTF-8"},
-        body: cuerpoJson,
-      );
-
-      if (respuesta.statusCode == 200) {
-        print("Enviado: ${respuesta.body}");
-      } else {
-        print("Error en servidor: Status ${respuesta.statusCode}");
-      }
-    } catch (e) {
-      print("Error de conexión: $e");
-    }
-  }
-
-  void controlarCiclo(bool activado) async {
-    if (activado) {
-      LocationPermission permiso = await Geolocator.checkPermission();
-
-      if (permiso == LocationPermission.denied) {
-        permiso = await Geolocator.requestPermission();
-        if (permiso == LocationPermission.denied) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Permiso de ubicación denegado.')),
-          );
-          setState(() {
-            estaActivo = false;
-          });
-          return;
-        }
-      }
-
-      if (permiso == LocationPermission.deniedForever) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Habilite la ubicación desde ajustes.')),
-        );
-        setState(() {
-          estaActivo = false;
-        });
-        return;
-      }
-
-      enviarDatos('activo');
-      _timer = Timer.periodic(const Duration(seconds: 5), (timer) {
-        enviarDatos('activo');
-      });
-    } else {
-      _timer?.cancel();
-      print("Iniciando ráfaga de cierre...");
-      await enviarDatos('inactivo');
-      await Future.delayed(const Duration(milliseconds: 500));
-      print("Proceso finalizado.");
-    }
-  }
-
-  // --- NUEVA FUNCIÓN PARA LOGOUT ---
-  void _cerrarSesion() async {
-    // 1. Si estaba transmitiendo, detenemos el timer y enviamos estado 'inactivo'
-    if (estaActivo) {
-      _timer?.cancel();
-      await enviarDatos('inactivo');
-    }
-
-    if (!mounted) return;
-
-    // 2. Navegamos al Login reemplazando la vista para que no pueda volver atrás con el botón físico
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const LoginPage()),
+    _viajeService = ViajeService(
+      viajesUrl:
+          'http://181.47.100.96/app_viajes/php/01_mapeo/obtener_viajes_pendientes.php',
+      asignarUrl:
+          'http://181.47.100.96/app_viajes/php/01_mapeo/asignar_viaje.php',
+      serverUrl: 'http://181.47.100.96/app_viajes/php/01_mapeo/recibir.php',
     );
+
+    WakelockPlus.enable();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _mostrarBienvenida();
+    });
+
+    _viajesTimer = Timer.periodic(const Duration(seconds: 10), (_) {
+      _obtenerViajesPendientes();
+    });
   }
 
   @override
   void dispose() {
     _timer?.cancel();
-    _idController.dispose();
+    _welcomeTimer?.cancel();
+    _viajesTimer?.cancel();
+    WakelockPlus.disable();
     super.dispose();
+  }
+
+  void _mostrarBienvenida() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.verified_user, color: Colors.blue, size: 28),
+            SizedBox(width: 10),
+            Text(
+              '¡Bienvenido!',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Has iniciado sesión correctamente',
+              style: TextStyle(fontSize: 16, color: Colors.grey),
+            ),
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.blue[50],
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.blue[100]!),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.person, color: Colors.blue, size: 20),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Chofer: ${widget.nombreChofer}',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.phone_android,
+                        color: Colors.blue,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Móvil: ${widget.numeroMovil}',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              '⏱️ Esta ventana se cerrará automáticamente en 30 segundos',
+              style: TextStyle(fontSize: 12, color: Colors.grey),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _welcomeTimer?.cancel();
+            },
+            child: const Text('CERRAR'),
+          ),
+        ],
+      ),
+    );
+
+    _welcomeTimer = Timer(const Duration(seconds: 30), () {
+      if (mounted) {
+        Navigator.pop(context);
+      }
+    });
+  }
+
+  Future<void> _obtenerViajesPendientes() async {
+    if (_cargandoViajes) return;
+    _cargandoViajes = true;
+
+    final viajes = await _viajeService.obtenerViajesPendientes();
+    if (mounted) {
+      setState(() {
+        _viajesPendientes = viajes;
+      });
+      _log('📋 Viajes pendientes: ${viajes.length}');
+    }
+    _cargandoViajes = false;
+  }
+
+  void _asignarViaje(int viajeId) async {
+    final success = await _viajeService.asignarViaje(
+      viajeId,
+      widget.numeroMovil,
+    );
+    if (success) {
+      _mostrarMensaje('✅ Viaje asignado correctamente');
+      _obtenerViajesPendientes();
+    } else {
+      _mostrarMensaje('❌ Error al asignar viaje');
+    }
+  }
+
+  void _mostrarMensaje(String mensaje) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(mensaje),
+        backgroundColor: Colors.blue,
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
+
+  Future<void> _sendLocation(String status) async {
+    if (_isSending) return;
+    _isSending = true;
+
+    try {
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        _log('❌ Sin permiso de ubicación');
+        _isSending = false;
+        return;
+      }
+
+      final position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      ).timeout(const Duration(seconds: 10));
+
+      await _viajeService.sendLocation(
+        widget.numeroMovil,
+        position.latitude,
+        position.longitude,
+        status,
+      );
+    } catch (e) {
+      _log('❌ Error al enviar ubicación: $e');
+    } finally {
+      _isSending = false;
+    }
+  }
+
+  Future<void> _sendStatusMultipleTimes(String status) async {
+    _log('📤 Enviando estado "$status" 3 veces...');
+    for (int i = 1; i <= 3; i++) {
+      _log('📤 Envío $i de 3 - Status: $status');
+      await _sendLocation(status);
+      await Future.delayed(const Duration(milliseconds: 500));
+    }
+    _log('✅ Estado "$status" enviado 3 veces correctamente');
+  }
+
+  void _toggleTracking(bool active) async {
+    if (active) {
+      _log('🟢 Activando seguimiento...');
+      await _sendStatusMultipleTimes('activo');
+      _timer = Timer.periodic(const Duration(seconds: 5), (_) {
+        _sendLocation('activo');
+      });
+    } else {
+      _log('🔴 Desactivando seguimiento...');
+      _timer?.cancel();
+      await _sendStatusMultipleTimes('inactivo');
+    }
+  }
+
+  void _logout() async {
+    if (_isActive) {
+      _timer?.cancel();
+      _log('🔄 Enviando estado inactivo antes de cerrar sesión...');
+      await _sendStatusMultipleTimes('inactivo');
+    }
+    if (mounted) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const LoginPage()),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Móvil N°: ${widget.numeroMovil}'),
-        centerTitle: true,
-        // Agregamos el botón de cerrar sesión en la parte derecha del AppBar
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout, color: Colors.redAccent),
-            tooltip: 'Cerrar Sesión',
-            onPressed: _cerrarSesion,
-          ),
-        ],
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 40.0),
-              child: TextField(
-                controller: _idController,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-                decoration: const InputDecoration(
-                  labelText: "Identificador del Móvil",
-                  border: OutlineInputBorder(),
-                ),
-                readOnly: true,
-              ),
-            ),
-            const SizedBox(height: 40),
+            const Text('Móvil:'),
+            const SizedBox(width: 8),
+            Text(widget.numeroMovil),
+            const SizedBox(width: 16),
             GestureDetector(
               onTap: () {
                 setState(() {
-                  estaActivo = !estaActivo;
-                  controlarCiclo(estaActivo);
+                  _isActive = !_isActive;
+                  _toggleTracking(_isActive);
                 });
               },
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                width: 220,
-                height: 220,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
-                  color: estaActivo ? Colors.redAccent : Colors.green,
-                  shape: BoxShape.circle,
+                  color: _isActive ? Colors.green : Colors.red,
+                  borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: (estaActivo ? Colors.redAccent : Colors.green)
-                          .withOpacity(0.4),
-                      blurRadius: 15,
-                      offset: const Offset(0, 8),
+                      color: (_isActive ? Colors.green : Colors.red)
+                          .withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
                     ),
                   ],
                 ),
-                child: Center(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        estaActivo ? Icons.stop_circle : Icons.play_arrow,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      _isActive ? Icons.play_arrow : Icons.stop,
+                      color: Colors.white,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      _isActive ? 'ACTIVO' : 'NO ACTIVO',
+                      style: const TextStyle(
                         color: Colors.white,
-                        size: 30,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
                       ),
-                      const SizedBox(width: 10),
-                      Text(
-                        estaActivo ? 'DETENER' : 'INICIAR',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ),
-            if (estaActivo)
-              const Padding(
-                padding: EdgeInsets.only(top: 25),
-                child: Text(
-                  "Transmitiendo coordenadas en tiempo real...",
-                  style: TextStyle(
-                    fontStyle: FontStyle.italic,
-                    color: Colors.grey,
-                  ),
-                ),
-              ),
           ],
         ),
+        backgroundColor: Colors.blue,
+        foregroundColor: Colors.white,
+        actions: [
+          IconButton(icon: const Icon(Icons.logout), onPressed: _logout),
+        ],
+      ),
+      body: Column(
+        children: [
+          _buildStatusIndicator(),
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: _obtenerViajesPendientes,
+              child: _viajesPendientes.isEmpty
+                  ? _buildEmptyState()
+                  : ListView.builder(
+                      padding: const EdgeInsets.all(12),
+                      itemCount: _viajesPendientes.length,
+                      itemBuilder: (context, index) {
+                        final viaje = _viajesPendientes[index];
+                        return ViajeCard(
+                          viaje: viaje,
+                          onAceptar: () => _asignarViaje(viaje['id']),
+                        );
+                      },
+                    ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatusIndicator() {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      color: Colors.grey[100],
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            _isActive ? Icons.gps_fixed : Icons.gps_off,
+            color: _isActive ? Colors.green : Colors.grey,
+          ),
+          const SizedBox(width: 8),
+          Text(
+            _isActive ? '🟢 Enviando ubicación...' : '⚪ Esperando...',
+            style: TextStyle(
+              color: _isActive ? Colors.green : Colors.grey,
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.inbox, size: 64, color: Colors.grey),
+          const SizedBox(height: 16),
+          const Text(
+            'No hay viajes pendientes',
+            style: TextStyle(fontSize: 18, color: Colors.grey),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Esperando nuevos viajes...',
+            style: TextStyle(fontSize: 14, color: Colors.grey),
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton.icon(
+            onPressed: _obtenerViajesPendientes,
+            icon: const Icon(Icons.refresh),
+            label: const Text('REFRESCAR'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue,
+              foregroundColor: Colors.white,
+            ),
+          ),
+        ],
       ),
     );
   }
