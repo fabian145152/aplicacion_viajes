@@ -1,0 +1,146 @@
+ .fecha-hora {
+            display: flex;
+            gap: 10px;
+        }
+
+        .fecha-hora input[type="date"] {
+            flex: 1;
+        }
+
+        .fecha-hora input[type="time"] {
+            flex: 2;
+        }
+
+        @media (max-width: 768px) {
+            .fecha-hora {
+                flex-direction: column;
+            }
+        }
+
+        /* GRID PRINCIPAL */
+        .form-2cols {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        /* COLUMNAS */
+        .form-2cols .col {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        /* FILA COMPLETA (botones abajo) */
+        .form-full {
+            grid-column: 1 / 3;
+            margin-top: 10px;
+        }
+
+        /* INPUTS MÁS LIMPIOS */
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        /* RESPONSIVE (IMPORTANTE) */
+        @media (max-width: 768px) {
+            .form-2cols {
+                grid-template-columns: 1fr;
+            }
+
+            .form-full {
+                grid-column: 1;
+            }
+        }
+
+        /* BOTON TARIFA (forzado) */
+        .btn-tarifa {
+            background-color: #ffc107 !important;
+            color: #000 !important;
+            font-weight: bold;
+        }
+
+        /* opcional: hover */
+        .btn-tarifa:hover {
+            background-color: #e0a800 !important;
+        }
+
+        .acciones-form {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .btn-guardar,
+        .btn-volver {
+            padding: 12px 24px;
+            border-radius: 8px;
+            border: none;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all .2s ease;
+            min-width: 180px;
+            text-align: center;
+        }
+
+        /* GUARDAR */
+        .btn-guardar {
+            background: #28a745;
+            color: #fff;
+        }
+
+        .btn-guardar:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        /* VOLVER */
+        .btn-volver {
+            background: #6c757d;
+            color: #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-volver:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        /* MOBILE */
+        @media (max-width: 768px) {
+            .acciones-form {
+                flex-direction: column;
+            }
+
+            .btn-guardar,
+            .btn-volver {
+                width: 100%;
+            }
+        }
+
+        /* Estilos base para los botones selectores */
+.btn-switch {
+    flex: 1;
+    padding: 12px 15px;
+    font-weight: bold;
+    font-size: 14px;
+    border: 2px solid #ccc;
+    background-color: #f8f9fa;
+    color: #495057;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+}
+
+.btn-switch:hover {
+    background-color: #e2e6ea;
+}
+

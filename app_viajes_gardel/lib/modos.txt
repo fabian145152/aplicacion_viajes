@@ -1,0 +1,8 @@
+* Para iniciar app nueva:
+
+conectar el celu 
+
+* Para grabar en el celu:
+        por terminal: flutter clean
+                      flutter run
+

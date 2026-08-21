@@ -1,0 +1,185 @@
+/* ==============================================================================
+   ESTILOS GENERALES
+   ============================================================================== */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f3f4f6;
+    color: #1f2937;
+    margin: 0;
+    padding: 50px 20px;
+    display: flex;
+    justify-content: center;
+}
+
+.main-wrapper {
+    max-width: 850px; /* Evita que la interfaz se estire de manera desproporcionada */
+    width: 100%;
+}
+
+h1 {
+    font-size: 24px;
+    color: #111827;
+    margin-bottom: 30px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    text-align: center;
+}
+
+/* ==============================================================================
+   CONTENEDOR DE DOS COLUMNAS (GRID FLUIDO)
+   ============================================================================== */
+.columnas-container {
+    display: flex;
+    gap: 24px;
+    justify-content: space-between;
+    margin-bottom: 25px;
+}
+
+/* TARJETA INDEPENDIENTE (CADA COLUMNA) */
+.ajustes-card {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 
+                0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    padding: 24px;
+    flex: 1; /* Distribuye el espacio en un 50% exacto para cada columna */
+    border: 1px solid #e5e7eb;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.ajustes-card h3 {
+    margin-top: 0;
+    margin-bottom: 6px;
+    font-size: 17px;
+    color: #111827;
+    font-weight: 600;
+}
+
+.ajustes-card .descripcion {
+    font-size: 13px;
+    color: #6b7280;
+    margin-top: 0;
+    margin-bottom: 20px;
+    line-height: 1.4;
+}
+
+/* FILA DE ENTRADA DE DATOS */
+.input-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    background-color: #f9fafb;
+    padding: 12px 14px;
+    border-radius: 8px;
+    border: 1px solid #f3f4f6;
+}
+
+.input-row label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #4b5563;
+}
+
+.input-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* INPUT NUMÉRICO PREMIUM */
+.ajustes-card input[type="number"] {
+    width: 70px;
+    padding: 8px;
+    border: 2px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: 700;
+    color: #111827;
+    text-align: center;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.ajustes-card input[type="number"]:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.min-txt {
+    font-size: 13px;
+    color: #4b5563;
+    font-weight: 600;
+}
+
+/* ==============================================================================
+   BOTONES DE GUARDADO INDEPENDIENTES
+   ============================================================================== */
+.btn-actualizar-config {
+    color: #ffffff;
+    border: none;
+    padding: 11px;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    width: 100%;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+/* Botón Diferidos: Azul */
+.btn-diferido {
+    background-color: #2563eb;
+    box-shadow: 0 2px 4px rgba(37, 99, 235, 0.1);
+}
+.btn-diferido:hover {
+    background-color: #1d4ed8;
+}
+
+/* Botón Tiempo Aire: Verde Azulado */
+.btn-aire {
+    background-color: #0d9488;
+    box-shadow: 0 2px 4px rgba(13, 148, 136, 0.1);
+}
+.btn-aire:hover {
+    background-color: #0f766e;
+}
+
+.btn-actualizar-config:active {
+    transform: scale(0.99);
+}
+
+/* ==============================================================================
+   BOTÓN SALIR
+   ============================================================================== */
+.footer-actions {
+    text-align: center;
+    margin-top: 15px;
+}
+
+.btn-salir {
+    display: inline-block;
+    color: #4b5563;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 8px 24px;
+    border-radius: 6px;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.btn-salir:hover {
+    background-color: #e5e7eb;
+    color: #111827;
+}
+
+/* RESPONSIVE: Si se abre desde un celular se apilan automáticamente */
+@media (max-width: 680px) {
+    .columnas-container {
+        flex-direction: column;
+        gap: 20px;
+    }
+}

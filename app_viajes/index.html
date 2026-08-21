@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Ingreso a la Aplicación</title>
+    <link href="https://fonts.googleapis.com/css?family=Lato:400,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        /* ============================================================
+               RESET Y BASE
+            ============================================================ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Lato', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        /* ============================================================
+               CONTENEDOR PRINCIPAL
+            ============================================================ */
+        .login-wrapper {
+            width: 100%;
+            max-width: 460px;
+            margin: 0 auto;
+        }
+
+        /* ============================================================
+               TARJETA DE LOGIN (estilo menú con fondo blanco)
+            ============================================================ */
+        .login-card {
+            background: #ffffff;
+            border-radius: 24px;
+            padding: 50px 45px 45px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+
+        /* ============================================================
+               LOGO / ICONO
+            ============================================================ */
+        .login-icon {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .login-icon i {
+            font-size: 56px;
+            color: #007bff;
+            background: #e7f1ff;
+            padding: 22px;
+            border-radius: 50%;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+
+        .login-icon i:hover {
+            transform: scale(1.05);
+            background: #d4e4ff;
+        }
+
+        /* ============================================================
+               TÍTULO
+            ============================================================ */
+        .login-title {
+            text-align: center;
+            color: #1a1a2e;
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .login-subtitle {
+            text-align: center;
+            color: #6c757d;
+            font-size: 14px;
+            font-weight: 400;
+            margin-bottom: 35px;
+            letter-spacing: 0.5px;
+        }
+
+        /* ============================================================
+               CAMPOS DEL FORMULARIO
+            ============================================================ */
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .form-group .input-icon {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #adb5bd;
+            font-size: 20px;
+            pointer-events: none;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 18px 20px 18px 55px;
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 14px;
+            color: #1a1a2e;
+            font-size: 16px;
+            font-family: 'Lato', sans-serif;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .form-group input::placeholder {
+            color: #adb5bd;
+            font-weight: 400;
+            font-size: 15px;
+        }
+
+        .form-group input:focus {
+            border-color: #007bff;
+            background: #ffffff;
+            box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.1);
+        }
+
+        .form-group input:focus+.input-icon,
+        .form-group input:focus~.input-icon {
+            color: #007bff;
+        }
+
+        /* ============================================================
+               BOTÓN (estilo tarjeta del menú)
+            ============================================================ */
+        .btn-login {
+            width: 100%;
+            padding: 18px;
+            background: #007bff;
+            border: none;
+            border-radius: 14px;
+            color: #ffffff;
+            font-size: 18px;
+            font-weight: 700;
+            font-family: 'Lato', sans-serif;
+            letter-spacing: 1.5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+        }
+
+        .btn-login:hover {
+            background: #0056b3;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 123, 255, 0.3);
+        }
+
+        .btn-login:active {
+            transform: translateY(0px);
+        }
+
+        .btn-login i {
+            font-size: 20px;
+        }
+
+        /* ============================================================
+               CREDENCIALES DE PRUEBA (estilo menú)
+            ============================================================ */
+        .credenciales {
+            width: 100%;
+            max-width: 460px;
+            margin-top: 28px;
+            background: #ffffff;
+            border-radius: 18px;
+            padding: 22px 28px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
+            border: 1px solid #e9ecef;
+        }
+
+        .credenciales .titulo-credenciales {
+            color: #6c757d;
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .credenciales ul {
+            list-style: none;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px 24px;
+            padding: 0;
+        }
+
+        .credenciales ul li {
+            color: #6c757d;
+            font-size: 13px;
+            font-weight: 400;
+            padding: 6px 0;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .credenciales ul li strong {
+            color: #1a1a2e;
+            font-weight: 700;
+        }
+
+        .credenciales ul li .badge {
+            display: inline-block;
+            font-size: 9px;
+            font-weight: 700;
+            padding: 2px 12px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-super {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .badge-admin {
+            background: #cce5ff;
+            color: #004085;
+        }
+
+        .badge-experto {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .badge-standard {
+            background: #e9ecef;
+            color: #6c757d;
+        }
+
+        /* ============================================================
+               RESPONSIVE
+            ============================================================ */
+        @media (max-width: 480px) {
+            .login-card {
+                padding: 35px 28px 32px;
+                border-radius: 20px;
+            }
+
+            .login-title {
+                font-size: 22px;
+            }
+
+            .login-subtitle {
+                font-size: 12px;
+                margin-bottom: 25px;
+            }
+
+            .login-icon i {
+                font-size: 40px;
+                padding: 16px;
+            }
+
+            .form-group input {
+                padding: 15px 16px 15px 48px;
+                font-size: 14px;
+                border-radius: 12px;
+            }
+
+            .form-group .input-icon {
+                left: 14px;
+                font-size: 17px;
+            }
+
+            .btn-login {
+                padding: 15px;
+                font-size: 16px;
+                border-radius: 12px;
+                gap: 10px;
+            }
+
+            .btn-login i {
+                font-size: 17px;
+            }
+
+            .credenciales {
+                padding: 16px 18px;
+                border-radius: 14px;
+                margin-top: 20px;
+            }
+
+            .credenciales ul {
+                grid-template-columns: 1fr;
+                gap: 4px;
+            }
+
+            .credenciales ul li {
+                font-size: 12px;
+            }
+
+            .credenciales .titulo-credenciales {
+                font-size: 11px;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .login-card {
+                padding: 25px 18px 22px;
+                border-radius: 16px;
+            }
+
+            .login-title {
+                font-size: 18px;
+            }
+
+            .login-subtitle {
+                font-size: 11px;
+                margin-bottom: 18px;
+            }
+
+            .login-icon i {
+                font-size: 32px;
+                padding: 12px;
+            }
+
+            .form-group input {
+                padding: 12px 12px 12px 40px;
+                font-size: 13px;
+                border-radius: 10px;
+            }
+
+            .form-group .input-icon {
+                left: 12px;
+                font-size: 15px;
+            }
+
+            .btn-login {
+                padding: 12px;
+                font-size: 14px;
+                border-radius: 10px;
+                gap: 8px;
+            }
+
+            .btn-login i {
+                font-size: 15px;
+            }
+
+            .credenciales ul li {
+                font-size: 11px;
+            }
+
+            .credenciales ul li .badge {
+                font-size: 8px;
+                padding: 1px 8px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="login-wrapper">
+
+        <!-- ===== TARJETA DE LOGIN ===== -->
+        <div class="login-card">
+
+            <!-- Icono -->
+            <div class="login-icon">
+                <i class="fas fa-lock"></i>
+            </div>
+
+            <!-- Título -->
+            <h1 class="login-title">Bienvenido</h1>
+            <p class="login-subtitle">Ingresa tus credenciales para continuar</p>
+
+            <!-- Formulario -->
+            <form action="php/login.php" method="POST" accept-charset="UTF-8" class="form-signin">
+
+                <div class="form-group">
+                    <i class="fas fa-user input-icon"></i>
+                    <input type="text" name="username" placeholder="Usuario o E-mail" required autofocus>
+                </div>
+
+                <div class="form-group">
+                    <i class="fas fa-lock input-icon"></i>
+                    <input type="password" name="password" placeholder="Contraseña" required>
+                </div>
+
+                <button type="submit" class="btn-login">
+                    <i class="fas fa-sign-in-alt"></i> Ingresar
+                </button>
+
+            </form>
+
+        </div>
+
+        <!-- ===== CREDENCIALES DE PRUEBA ===== -->
+        <div class="credenciales">
+            <p class="titulo-credenciales">🔑 Credenciales de prueba</p>
+            <ul>
+                <li><strong>fabian</strong> - 145152 <span class="badge badge-super">Super</span></li>
+                <li><strong>lucas</strong> - 123456 <span class="badge badge-admin">Admin</span></li>
+                <li><strong>sofi</strong> - 123456 <span class="badge badge-experto">Experto</span></li>
+                <li><strong>maria</strong> - 123456 <span class="badge badge-standard">Standard</span></li>
+            </ul>
+        </div>
+
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/jquery-3.4.1.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+
+</body>
+
+</html>

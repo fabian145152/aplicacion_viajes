@@ -1,0 +1,72 @@
+
+Fecha: 2026-06-30 15:41:15 | Lat: -34.6472129 | Lng: -58.4581284 | Movil: Sin Móvil | Estado: activo
+Fecha: 2026-06-30 15:41:16 | Lat: -34.6472129 | Lng: -58.4581284 | Movil: Sin Móvil | Estado: inactivo
+Fecha: 2026-06-30 15:41:16 | Lat: -34.6472129 | Lng: -58.4581284 | Movil: Sin Móvil | Estado: inactivo
+Fecha: 2026-06-30 15:41:17 | Lat: -34.6472129 | Lng: -58.4581284 | Movil: Sin Móvil | Estado: inactivo
+
+Fecha: 2026-07-01 10:32:03 | Lat: -34.6472059 | Lng: -58.4580956 | Movil: 3025 | Estado: activo
+Fecha: 2026-07-01 10:32:04 | Lat: -34.6472059 | Lng: -58.4580956 | Movil: 3025 | Estado: inactivo
+Fecha: 2026-07-01 10:32:04 | Lat: -34.6472059 | Lng: -58.4580956 | Movil: 3025 | Estado: inactivo
+Fecha: 2026-07-01 10:32:05 | Lat: -34.6472059 | Lng: -58.4580956 | Movil: 3025 | Estado: inactivo
+Fecha: 2026-07-01 10:43:12 | Lat: null | Lng: null | Movil: null | Estado: null
+Fecha: 2026-07-01 10:43:16 | Lat: null | Lng: null | Movil: null | Estado: null
+Fecha: 2026-07-01 10:43:22 | Lat: null | Lng: null | Movil: null | Estado: null
+Fecha: 2026-07-01 10:43:26 | Lat: null | Lng: null | Movil: null | Estado: null
+Fecha: 2026-07-01 10:43:29 | Lat: null | Lng: null | Movil: null | Estado: null
+Fecha: 2026-07-01 10:43:30 | Lat: null | Lng: null | Movil: null | Estado: null
+Fecha: 2026-07-01 10:43:31 | Lat: null | Lng: null | Movil: null | Estado: null
+Fecha: 2026-07-01 10:46:40 | Lat: null | Lng: null | Movil: null | Estado: null
+Fecha: 2026-07-01 10:46:44 | Lat: null | Lng: null | Movil: null | Estado: null
+Fecha: 2026-07-01 10:46:50 | Lat: null | Lng: null | Movil: null | Estado: null
+Fecha: 2026-07-01 10:46:54 | Lat: null | Lng: null | Movil: null | Estado: null
+Fecha: 2026-07-01 10:47:00 | Lat: null | Lng: null | Movil: null | Estado: null
+Fecha: 2026-07-01 10:47:04 | Lat: null | Lng: null | Movil: null | Estado: null
+Fecha: 2026-07-01 10:47:10 | Lat: null | Lng: null | Movil: null | Estado: null
+Fecha: 2026-07-01 10:47:14 | Lat: null | Lng: null | Movil: null | Estado: null
+Fecha: 2026-07-01 10:47:20 | Lat: null | Lng: null | Movil: null | Estado: null
+Fecha: 2026-07-01 10:47:24 | Lat: null | Lng: null | Movil: null | Estado: null
+Fecha: 2026-07-01 10:47:30 | Lat: null | Lng: null | Movil: null | Estado: null
+Fecha: 2026-07-01 10:47:33 | Lat: null | Lng: null | Movil: null | Estado: null
+Fecha: 2026-07-01 10:47:34 | Lat: null | Lng: null | Movil: null | Estado: null
+Fecha: 2026-07-01 10:47:35 | Lat: null | Lng: null | Movil: null | Estado: null
+Fecha: 2026-07-01 10:51:29 | Lat: null | Lng: null | Movil: null | Estado: null
+Fecha: 2026-07-01 10:51:29 | Lat: null | Lng: null | Movil: null | Estado: null
+Fecha: 2026-07-01 10:51:30 | Lat: null | Lng: null | Movil: null | Estado: null
+Fecha: 2026-07-01 10:51:31 | Lat: null | Lng: null | Movil: null | Estado: null
+Fecha: 2026-07-01 10:51:37 | Lat: null | Lng: null | Movil: null | Estado: null
+Fecha: 2026-07-01 10:51:41 | Lat: null | Lng: null | Movil: null | Estado: null
+Fecha: 2026-07-01 10:51:47 | Lat: null | Lng: null | Movil: null | Estado: null
+Fecha: 2026-07-01 10:51:51 | Lat: null | Lng: null | Movil: null | Estado: null
+Fecha: 2026-07-01 10:51:57 | Lat: null | Lng: null | Movil: null | Estado: null
+Fecha: 2026-07-01 10:52:01 | Lat: null | Lng: null | Movil: null | Estado: null
+Fecha: 2026-07-01 10:52:07 | Lat: null | Lng: null | Movil: null | Estado: null
+Fecha: 2026-07-01 10:52:11 | Lat: null | Lng: null | Movil: null | Estado: null
+Fecha: 2026-07-01 10:52:17 | Lat: null | Lng: null | Movil: null | Estado: null
+Fecha: 2026-07-01 10:52:21 | Lat: null | Lng: null | Movil: null | Estado: null
+Fecha: 2026-07-01 10:52:22 | Lat: null | Lng: null | Movil: null | Estado: null
+Fecha: 2026-07-01 10:52:23 | Lat: null | Lng: null | Movil: null | Estado: null
+Fecha: 2026-07-01 10:52:39 | Lat: null | Lng: null | Movil: null | Estado: null
+Fecha: 2026-07-01 10:52:40 | Lat: null | Lng: null | Movil: null | Estado: null
+Fecha: 2026-07-01 10:52:41 | Lat: null | Lng: null | Movil: null | Estado: null
+Fecha: 2026-07-01 10:53:56 | Lat: null | Lng: null | Movil: null | Estado: null
+Fecha: 2026-07-01 10:54:00 | Lat: null | Lng: null | Movil: null | Estado: null
+Fecha: 2026-07-01 10:54:06 | Lat: null | Lng: null | Movil: null | Estado: null
+Fecha: 2026-07-01 10:54:10 | Lat: null | Lng: null | Movil: null | Estado: null
+Fecha: 2026-07-01 10:54:16 | Lat: null | Lng: null | Movil: null | Estado: null
+Fecha: 2026-07-01 10:54:18 | Lat: null | Lng: null | Movil: null | Estado: null
+Fecha: 2026-07-01 10:54:20 | Lat: null | Lng: null | Movil: null | Estado: null
+Fecha: 2026-07-01 10:57:51 | Lat: null | Lng: null | Movil: null | Estado: null
+Fecha: 2026-07-01 10:57:52 | Lat: null | Lng: null | Movil: null | Estado: null
+Fecha: 2026-07-01 11:04:30 | Lat: null | Lng: null | Movil: null | Estado: null
+Fecha: 2026-07-01 11:04:30 | Lat: null | Lng: null | Movil: null | Estado: null
+Fecha: 2026-07-01 11:04:47 | Lat: null | Lng: null | Movil: null | Estado: null
+Fecha: 2026-07-01 11:04:51 | Lat: null | Lng: null | Movil: null | Estado: null
+Fecha: 2026-07-01 11:04:58 | Lat: null | Lng: null | Movil: null | Estado: null
+Fecha: 2026-07-01 11:05:01 | Lat: null | Lng: null | Movil: null | Estado: null
+Fecha: 2026-07-01 11:05:08 | Lat: null | Lng: null | Movil: null | Estado: null
+Fecha: 2026-07-01 11:05:11 | Lat: null | Lng: null | Movil: null | Estado: null
+Fecha: 2026-07-01 11:05:17 | Lat: null | Lng: null | Movil: null | Estado: null
+Fecha: 2026-07-01 11:06:05 | Lat: null | Lng: null | Movil: null | Estado: null
+Fecha: 2026-07-01 11:06:08 | Lat: null | Lng: null | Movil: null | Estado: null
+Fecha: 2026-07-01 11:06:23 | Lat: null | Lng: null | Movil: null | Estado: null
+Fecha: 2026-07-01 11:06:25 | Lat: null | Lng: null | Movil: null | Estado: null
