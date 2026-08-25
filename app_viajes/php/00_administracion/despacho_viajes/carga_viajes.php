@@ -1152,6 +1152,21 @@ if ($viaje && !empty($viaje['asignado_a'])) {
                         <input type="hidden" name="origen_lat" id="dir_origen_lat" value="<?= $viaje['origen_lat'] ?? '' ?>">
                         <input type="hidden" name="origen_lng" id="dir_origen_lng" value="<?= $viaje['origen_lng'] ?? '' ?>">
                     </div>
+                    <!-- --------------------------------------------------------------------------------------------- -->
+                    <!-- ===== PUNTOS DE PASO ===== -->
+                    <div class="form-group">
+                        <label>📍 Puntos de Paso (Opcional)</label>
+                        <div class="input-mapa">
+                            <input type="text" id="puntos_paso" name="puntos_paso"
+                                value="<?= htmlspecialchars($viaje['puntos_paso'] ?? '') ?>"
+                                placeholder="Ej: Av. Libertador 1234, CABA | Av. Santa Fe 5678, CABA"
+                                onkeyup="autocomplete(this)">
+                            <button type="button" class="btn-map btn-recorrido" onclick="verRecorridoConParadas()">🔄 CON PARADAS</button>
+                        </div>
+                        <div id="puntos_paso_list" class="autocomplete-box"></div>
+                        <small>Separar cada punto con el caracter | (pipe). Ej: Dirección 1 | Dirección 2 | Dirección 3</small>
+                    </div>
+                    <!-- ---------------------------------------------------------------------------------------------  -->
 
                     <div class="form-group">
                         <label>📍 Destino</label>

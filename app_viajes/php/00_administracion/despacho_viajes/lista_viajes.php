@@ -64,7 +64,7 @@ if (isset($_GET['desasignar'])) {
 
     // Obtener datos antes de desasignar
     $datos_anteriores = obtenerRegistroParaAuditoria('viajes_despacho', $viaje_id);
-    
+
     $conn = conexion();
     $stmt = $conn->prepare("UPDATE viajes_despacho
                             SET asignado_a = NULL,
@@ -72,7 +72,7 @@ if (isset($_GET['desasignar'])) {
                                 estado = 'Pendiente'
                             WHERE id = ?");
     $resultado = $stmt->execute([$viaje_id]);
-    
+
     if ($resultado && $datos_anteriores) {
         $datos_nuevos = $datos_anteriores;
         $datos_nuevos['asignado_a'] = null;
@@ -924,6 +924,16 @@ $viajes = obtenerViajesFiltrados($filtro_estado);
             background: #7e4444 !important;
             color: #ffffff !important;
         }
+
+        .col-puntos-paso {
+            width: 15%;
+            min-width: 100px;
+            max-width: 200px;
+            font-size: 10px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
     </style>
     <script>
         // ============================================================
@@ -1181,6 +1191,7 @@ $viajes = obtenerViajesFiltrados($filtro_estado);
                             <th class="col-fe-tiempo">Fecha</th>
                             <th class="col-tiempo">Hora</th>
                             <th class="col-direccion">Origen</th>
+                            <th class="col-puntos-paso">Puntos de Paso</th>
                             <th class="col-direccion">Destino</th>
                             <th class="col-cat">Categoría</th>
                             <th class="col-tipo">Estado</th>
@@ -1232,6 +1243,10 @@ $viajes = obtenerViajesFiltrados($filtro_estado);
                                     </td>
                                     <td class="col-direccion" title="<?= htmlspecialchars($v['direccion_origen']) ?>">
                                         <?= htmlspecialchars($v['direccion_origen']) ?>
+                                    </td>
+                                    <td class="col-puntos-paso" style="font-size:10px; color:#666; max-width:150px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"
+                                        title="<?= htmlspecialchars($v['puntos_paso'] ?? '') ?>">
+                                        <?= $v['puntos_paso'] ? '📍 ' . htmlspecialchars($v['puntos_paso']) : '-' ?>
                                     </td>
                                     <td class="col-direccion" title="<?= htmlspecialchars($v['direccion_destino']) ?>">
                                         <?= htmlspecialchars($v['direccion_destino']) ?>

@@ -157,17 +157,14 @@ function guardarViaje($datos)
 {
     $conn = conexion();
 
-    // Verificar si estamos editando o creando
     if (isset($datos['id']) && !empty($datos['id'])) {
-        // ========== ACTUALIZAR (EDITAR) ==========
-        // Obtener datos anteriores para auditoría
-        $datos_anteriores = obtenerRegistroParaAuditoria('viajes_despacho', $datos['id']);
-
+        // ACTUALIZAR
         $sql = "UPDATE viajes_despacho SET 
             cel_pasaj = ?,
             nombre_pasaj = ?,
             direccion_origen = ?,
             direccion_destino = ?,
+            puntos_paso = ?,
             obs_pasaj = ?,
             obs_operador = ?,
             estado = ?,
@@ -184,11 +181,12 @@ function guardarViaje($datos)
         WHERE id = ?";
 
         $stmt = $conn->prepare($sql);
-        $resultado = $stmt->execute([
+        $stmt->execute([
             $datos['cel_pasaj'],
             $datos['nombre_pasaj'],
             $datos['direccion_origen'],
             !empty($datos['direccion_destino']) ? $datos['direccion_destino'] : null,
+            $datos['puntos_paso'] ?? null,
             $datos['obs_pasaj'] ?? '',
             $datos['obs_operador'] ?? '',
             $datos['estado'] ?? 'Pendiente',
@@ -204,32 +202,14 @@ function guardarViaje($datos)
             $datos['id_autorizante'] ?? 0,
             $datos['id']
         ]);
-
-        if ($resultado) {
-            // Registrar auditoría
-            $datos_nuevos = [
-                'cel_pasaj' => $datos['cel_pasaj'],
-                'nombre_pasaj' => $datos['nombre_pasaj'],
-                'direccion_origen' => $datos['direccion_origen'],
-                'direccion_destino' => $datos['direccion_destino'] ?? null,
-                'estado' => $datos['estado'] ?? 'Pendiente',
-                'fecha' => $datos['fecha'] ?? null,
-                'hora' => $datos['hora'] ?? null,
-                'categoria_movil' => $datos['categoria_movil'] ?? '',
-                'cc' => $datos['cc'] ?? 0,
-                'id_cc' => $datos['id_cc'] ?? 0,
-                'id_autorizante' => $datos['id_autorizante'] ?? 0
-            ];
-            registrarAuditoria('viajes_despacho', $datos['id'], 'U', $datos_anteriores, $datos_nuevos);
-        }
-        return $resultado;
     } else {
-        // ========== INSERTAR (NUEVO) ==========
+        // INSERTAR
         $sql = "INSERT INTO viajes_despacho (
             cel_pasaj, 
             nombre_pasaj, 
             direccion_origen, 
-            direccion_destino, 
+            direccion_destino,
+            puntos_paso,
             obs_pasaj, 
             obs_operador, 
             estado, 
@@ -244,15 +224,16 @@ function guardarViaje($datos)
             id_cc, 
             id_autorizante
         ) VALUES (
-            ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+            ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
         )";
 
         $stmt = $conn->prepare($sql);
-        $resultado = $stmt->execute([
+        $stmt->execute([
             $datos['cel_pasaj'],
             $datos['nombre_pasaj'],
             $datos['direccion_origen'],
             !empty($datos['direccion_destino']) ? $datos['direccion_destino'] : null,
+            $datos['puntos_paso'] ?? null,
             $datos['obs_pasaj'] ?? '',
             $datos['obs_operador'] ?? '',
             $datos['estado'] ?? 'Pendiente',
@@ -268,26 +249,7 @@ function guardarViaje($datos)
             $datos['id_autorizante'] ?? 0
         ]);
 
-        if ($resultado) {
-            // Obtener el ID del registro insertado
-            $nuevo_id = $conn->lastInsertId();
-            // Registrar auditoría
-            $datos_nuevos = [
-                'cel_pasaj' => $datos['cel_pasaj'],
-                'nombre_pasaj' => $datos['nombre_pasaj'],
-                'direccion_origen' => $datos['direccion_origen'],
-                'direccion_destino' => $datos['direccion_destino'] ?? null,
-                'estado' => $datos['estado'] ?? 'Pendiente',
-                'fecha' => $datos['fecha'] ?? null,
-                'hora' => $datos['hora'] ?? null,
-                'categoria_movil' => $datos['categoria_movil'] ?? '',
-                'cc' => $datos['cc'] ?? 0,
-                'id_cc' => $datos['id_cc'] ?? 0,
-                'id_autorizante' => $datos['id_autorizante'] ?? 0
-            ];
-            registrarAuditoria('viajes_despacho', $nuevo_id, 'C', null, $datos_nuevos);
-        }
-        return $resultado;
+        return $conn->lastInsertId();
     }
 }
 

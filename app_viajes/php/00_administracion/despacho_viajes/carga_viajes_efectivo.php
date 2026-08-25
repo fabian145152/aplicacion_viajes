@@ -3,7 +3,6 @@ include_once "../../../funciones/funciones.php";
 protegerPagina([0, 3]);
 
 $usuario = nombre_usuario();
-
 $nombre_usuario = $usuario['nombre'];
 $usuario_id = $usuario['id'];
 
@@ -12,7 +11,6 @@ $usuario_id = $usuario['id'];
 // ============================================================
 function determinarEstadoViaje($fecha, $hora)
 {
-    // Si no hay fecha u hora, el viaje es Pendiente por defecto
     if (empty($fecha) || empty($hora)) {
         return 'Pendiente';
     }
@@ -21,7 +19,6 @@ function determinarEstadoViaje($fecha, $hora)
     $timestamp_seleccionado = strtotime($fecha_hora_completa);
     $timestamp_ahora = time();
 
-    // Si la fecha/hora es futura, el viaje es Diferido
     if ($timestamp_seleccionado > $timestamp_ahora) {
         return 'Diferido';
     } else {
@@ -30,14 +27,11 @@ function determinarEstadoViaje($fecha, $hora)
 }
 
 if (isset($_POST['guardar'])) {
-    // Obtener fecha y hora con validación - SIEMPRE usar la fecha del formulario o la actual si no viene
     $fecha = isset($_POST['fecha']) && !empty($_POST['fecha']) ? $_POST['fecha'] : date('Y-m-d');
     $hora = isset($_POST['hora']) && !empty($_POST['hora']) ? $_POST['hora'] : date('H:i');
 
-    // Determinar estado automáticamente
     $estado = determinarEstadoViaje($fecha, $hora);
 
-    // Agregar los valores al POST
     $_POST['fecha'] = $fecha;
     $_POST['hora'] = $hora;
     $_POST['estado'] = $estado;
@@ -45,24 +39,21 @@ if (isset($_POST['guardar'])) {
     // Guardar en viajes_despacho
     guardarViaje($_POST);
 
-    // 🔴 GUARDAR O ACTUALIZAR EN PASAJEROS_HABITUALES
+    // Guardar en pasajeros_habituales
     $conn = conexion();
     $celular = $_POST['cel_pasaj'];
     $nombre = $_POST['nombre_pasaj'];
     $origen = $_POST['direccion_origen'];
     $destino = $_POST['direccion_destino'] ?? '';
 
-    // Verificar si ya existe este celular
     $stmt = $conn->prepare("SELECT id FROM pasajeros_habituales WHERE celular = ?");
     $stmt->execute([$celular]);
     $existe = $stmt->fetch();
 
     if ($existe) {
-        // Actualizar registro existente
         $update = $conn->prepare("UPDATE pasajeros_habituales SET nombre = ?, origen = ?, destino = ?, fecha = ? WHERE celular = ?");
         $update->execute([$nombre, $origen, $destino, $fecha, $celular]);
     } else {
-        // Insertar nuevo registro
         $insert = $conn->prepare("INSERT INTO pasajeros_habituales (celular, nombre, origen, destino, fecha) VALUES (?, ?, ?, ?, ?)");
         $insert->execute([$celular, $nombre, $origen, $destino, $fecha]);
     }
@@ -91,7 +82,6 @@ if (isset($_GET['editar'])) {
     <script src="carga_viajes.js" defer></script>
 
     <style>
-        /* BOTONES DE ESTADO */
         .grupo-botones-estado {
             display: flex;
             gap: 10px;
@@ -130,7 +120,6 @@ if (isset($_GET['editar'])) {
             box-shadow: 0 0 5px rgba(253, 126, 20, 0.5);
         }
 
-        /* CATEGORIAS */
         .grid-categorias {
             display: flex;
             gap: 8px;
@@ -184,7 +173,6 @@ if (isset($_GET['editar'])) {
             color: #0d6efd;
         }
 
-        /* RESULTADO RECORRIDO */
         .resultado-recorrido {
             display: flex;
             gap: 30px;
@@ -217,7 +205,6 @@ if (isset($_GET['editar'])) {
             color: #6c757d;
         }
 
-        /* INPUT MAPA */
         .input-mapa {
             display: flex;
             gap: 5px;
@@ -262,6 +249,24 @@ if (isset($_GET['editar'])) {
 
         .btn-recorrido:hover {
             background: #5c36a6;
+        }
+
+        .btn-recorrido-paradas {
+            background: #fd7e14;
+            color: white;
+        }
+
+        .btn-recorrido-paradas:hover {
+            background: #e46a06;
+        }
+
+        .btn-ver-punto {
+            background: #20c997;
+            color: white;
+        }
+
+        .btn-ver-punto:hover {
+            background: #1ba87e;
         }
 
         .autocomplete-box {
@@ -392,7 +397,6 @@ if (isset($_GET['editar'])) {
             font-size: 11px;
         }
 
-        /* BOTON GUARDAR RECORRIDO */
         .btn-guardar-recorrido {
             background: #28a745;
             color: white;
@@ -501,7 +505,12 @@ if (isset($_GET['editar'])) {
             color: #0d6efd;
         }
 
-        /* RESPONSIVE */
+        .info-paradas {
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 3px;
+        }
+
         @media (max-width: 768px) {
             .form-2cols {
                 grid-template-columns: 1fr;
@@ -650,7 +659,6 @@ if (isset($_GET['editar'])) {
             }
         }
 
-        // 🔴 FUNCIÓN: BUSCAR PASAJERO HABITUAL POR CELULAR
         function buscarPasajeroHabitual() {
             const celInput = document.getElementById('cel_pasaj');
             const celular = celInput.value.trim();
@@ -660,38 +668,26 @@ if (isset($_GET['editar'])) {
             }
 
             fetch('obtener_pasajero_habitual.php?celular=' + encodeURIComponent(celular))
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('HTTP error! status: ' + response.status);
-                    }
-                    return response.json();
-                })
+                .then(response => response.json())
                 .then(data => {
                     if (data && data.id) {
                         document.getElementById('nombre_pasaj').value = data.nombre || '';
                         document.getElementById('dir_origen').value = data.origen || '';
                         document.getElementById('dir_destino').value = data.destino || '';
                         document.getElementById('fecha').value = data.fecha || '';
-
-                        if (!editandoViaje) {
-                            document.getElementById('fecha').readOnly = false;
-                        }
                     }
                 })
-                .catch(error => {
-                    console.error('❌ Error en la búsqueda del pasajero:', error);
-                });
+                .catch(error => console.error('Error en la búsqueda del pasajero:', error));
         }
 
         function limpiarFormulario() {
-            if (!confirm("¿Está seguro de que desea limpiar todos los campos del formulario?")) {
-                return;
-            }
+            if (!confirm("¿Está seguro de que desea limpiar todos los campos del formulario?")) return;
 
             document.getElementById('cel_pasaj').value = '';
             document.getElementById('nombre_pasaj').value = '';
             document.getElementById('dir_origen').value = '';
             document.getElementById('dir_destino').value = '';
+            document.getElementById('puntos_paso').value = '';
             document.getElementById('obs_pasaj').value = '';
             document.getElementById('obs_operador').value = '';
             document.getElementById('fecha').value = '';
@@ -711,16 +707,61 @@ if (isset($_GET['editar'])) {
             document.getElementById('btnGuardarRecorrido').disabled = true;
             document.getElementById('btnGuardarRecorrido').textContent = '💾 Guardar Recorrido';
             document.getElementById('btnGuardarRecorrido').classList.remove('guardado');
+            document.getElementById('info_paradas').textContent = '';
 
-            if (!editandoViaje) {
-                fechaActual();
+            if (!editandoViaje) fechaActual();
+        }
+
+        function contarParadas(input) {
+            const info = document.getElementById('info_paradas');
+            if (!info) return;
+
+            const valor = input.value.trim();
+            if (!valor) {
+                info.textContent = '';
+                return;
             }
+
+            const paradas = valor.split('|').map(p => p.trim()).filter(p => p.length > 0);
+            if (paradas.length === 0) {
+                info.textContent = '';
+            } else if (paradas.length === 1) {
+                info.textContent = `📍 1 parada intermedia`;
+            } else {
+                info.textContent = `📍 ${paradas.length} paradas intermedias`;
+            }
+        }
+
+        function verPuntoPaso() {
+            const input = document.getElementById('puntos_paso');
+            const direccion = input.value.trim();
+
+            if (!direccion) {
+                alert("❌ Ingresa una dirección en 'Puntos de Paso' primero");
+                return;
+            }
+
+            const primeraDireccion = direccion.split('|')[0].trim();
+            if (!primeraDireccion) {
+                alert("❌ No se encontró una dirección válida");
+                return;
+            }
+
+            const inputTemp = document.createElement('input');
+            inputTemp.id = 'punto_paso_temp';
+            inputTemp.value = primeraDireccion;
+            document.body.appendChild(inputTemp);
+
+            verMapa('punto_paso_temp');
+
+            setTimeout(() => {
+                document.body.removeChild(inputTemp);
+            }, 1000);
         }
 
         document.addEventListener("DOMContentLoaded", function() {
             console.log('🚀 Página cargada, inicializando...');
 
-            // Estado del viaje
             const inputEstado = document.getElementById("estado_oculto");
             if (inputEstado) {
                 if (!editandoViaje) {
@@ -749,23 +790,16 @@ if (isset($_GET['editar'])) {
 
             setTimeout(verificarGuardarRecorrido, 500);
 
-            // 🔴 EVENTO DE BÚSQUEDA AUTOMÁTICA POR CELULAR
             const celInput = document.getElementById('cel_pasaj');
-
             if (celInput) {
                 let timeoutId;
-
-                celInput.addEventListener('input', function(e) {
+                celInput.addEventListener('input', function() {
                     const celular = this.value.trim();
-
                     clearTimeout(timeoutId);
                     if (celular.length >= 8) {
-                        timeoutId = setTimeout(() => {
-                            buscarPasajeroHabitual();
-                        }, 500);
+                        timeoutId = setTimeout(() => buscarPasajeroHabitual(), 500);
                     }
                 });
-
                 celInput.addEventListener('keydown', function(e) {
                     if (e.key === 'Enter') {
                         e.preventDefault();
@@ -775,7 +809,6 @@ if (isset($_GET['editar'])) {
                 });
             }
 
-            // 🔴 NUEVO: FORZAR FECHA ACTUAL ANTES DE ENVIAR EL FORMULARIO
             const form = document.querySelector('form');
             if (form) {
                 form.addEventListener('submit', function(e) {
@@ -783,7 +816,6 @@ if (isset($_GET['editar'])) {
                     const fecha = document.getElementById('fecha');
                     const hora = document.getElementById('hora');
 
-                    // Si es Pendiente, forzar fecha y hora actual
                     if (estado === 'Pendiente') {
                         const ahora = new Date();
                         const yyyy = ahora.getFullYear();
@@ -796,6 +828,14 @@ if (isset($_GET['editar'])) {
                         hora.value = `${hh}:${mi}`;
                     }
                 });
+            }
+
+            // 🔴 FORZAR QUE EL BOTÓN "CON PARADAS" USE LA FUNCIÓN CORRECTA
+            const btnParadas = document.querySelector('.btn-recorrido-paradas');
+            if (btnParadas) {
+                btnParadas.onclick = function() {
+                    verRecorridoConParadas();
+                };
             }
         });
 
@@ -999,6 +1039,7 @@ if (isset($_GET['editar'])) {
                         <label>📝 Observaciones del viaje (las ve solo el chofer)</label>
                         <textarea name="obs_operador" rows="3"><?= $viaje['obs_operador'] ?? '' ?></textarea>
                     </div>
+
                     <div class="form-group">
                         <label>📌 Estado / Modalidad del Viaje</label>
                         <div class="grupo-botones-estado">
@@ -1026,6 +1067,21 @@ if (isset($_GET['editar'])) {
                         <div id="dir_origen_list" class="autocomplete-box"></div>
                         <input type="hidden" name="origen_lat" id="dir_origen_lat" value="<?= $viaje['origen_lat'] ?? '' ?>">
                         <input type="hidden" name="origen_lng" id="dir_origen_lng" value="<?= $viaje['origen_lng'] ?? '' ?>">
+                    </div>
+
+                    <!-- ===== PUNTOS DE PASO ===== -->
+                    <div class="form-group">
+                        <label>📍 Puntos de Paso (Opcional)</label>
+                        <div class="input-mapa">
+                            <input type="text" id="puntos_paso" name="puntos_paso"
+                                value="<?= htmlspecialchars($viaje['puntos_paso'] ?? '') ?>"
+                                placeholder="Ej: Av. Libertador 1234, CABA | Av. Santa Fe 5678, CABA"
+                                onkeyup="autocomplete(this); contarParadas(this);">
+                            <button type="button" class="btn-map btn-ver-punto" onclick="verPuntoPaso()" title="Ver la primera dirección en el mapa">📍 VER</button>
+                        </div>
+                        <div id="puntos_paso_list" class="autocomplete-box"></div>
+                        <div id="info_paradas" class="info-paradas"></div>
+                        <small>Separar cada punto con el caracter | (pipe). Ej: Dirección 1 | Dirección 2 | Dirección 3</small>
                     </div>
 
                     <div class="form-group">
