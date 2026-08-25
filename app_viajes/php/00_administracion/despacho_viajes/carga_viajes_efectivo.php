@@ -7,7 +7,41 @@ $usuario = nombre_usuario();
 $nombre_usuario = $usuario['nombre'];
 $usuario_id = $usuario['id'];
 
+// ============================================================
+// DETERMINAR ESTADO DEL VIAJE AL GUARDAR
+// ============================================================
+function determinarEstadoViaje($fecha, $hora)
+{
+    // Si no hay fecha u hora, el viaje es Pendiente por defecto
+    if (empty($fecha) || empty($hora)) {
+        return 'Pendiente';
+    }
+
+    $fecha_hora_completa = $fecha . ' ' . $hora;
+    $timestamp_seleccionado = strtotime($fecha_hora_completa);
+    $timestamp_ahora = time();
+
+    // Si la fecha/hora es futura, el viaje es Diferido
+    if ($timestamp_seleccionado > $timestamp_ahora) {
+        return 'Diferido';
+    } else {
+        return 'Pendiente';
+    }
+}
+
 if (isset($_POST['guardar'])) {
+    // Obtener fecha y hora con validación - SIEMPRE usar la fecha del formulario o la actual si no viene
+    $fecha = isset($_POST['fecha']) && !empty($_POST['fecha']) ? $_POST['fecha'] : date('Y-m-d');
+    $hora = isset($_POST['hora']) && !empty($_POST['hora']) ? $_POST['hora'] : date('H:i');
+
+    // Determinar estado automáticamente
+    $estado = determinarEstadoViaje($fecha, $hora);
+
+    // Agregar los valores al POST
+    $_POST['fecha'] = $fecha;
+    $_POST['hora'] = $hora;
+    $_POST['estado'] = $estado;
+
     // Guardar en viajes_despacho
     guardarViaje($_POST);
 
@@ -16,8 +50,7 @@ if (isset($_POST['guardar'])) {
     $celular = $_POST['cel_pasaj'];
     $nombre = $_POST['nombre_pasaj'];
     $origen = $_POST['direccion_origen'];
-    $destino = $_POST['direccion_destino'];
-    $fecha = $_POST['fecha'] ?? date('Y-m-d');
+    $destino = $_POST['direccion_destino'] ?? '';
 
     // Verificar si ya existe este celular
     $stmt = $conn->prepare("SELECT id FROM pasajeros_habituales WHERE celular = ?");
@@ -584,15 +617,16 @@ if (isset($_GET['editar'])) {
                 if (fecha && hora) {
                     fecha.readOnly = false;
                     hora.readOnly = false;
+                    if (!fecha.value) {
+                        fechaActual();
+                    }
                 }
             } else {
                 inputEstado.value = 'Pendiente';
                 btnInmediato.classList.add('activo-inmediato');
                 btnDiferido.classList.remove('activo-diferido');
                 contenedorFechaHora.style.display = 'none';
-                if (!editandoViaje) {
-                    fechaActual();
-                }
+                fechaActual();
                 if (fecha && hora) {
                     fecha.readOnly = true;
                     hora.readOnly = true;
@@ -616,31 +650,24 @@ if (isset($_GET['editar'])) {
             }
         }
 
-        // 🔴 NUEVA FUNCIÓN: BUSCAR PASAJERO HABITUAL POR CELULAR
+        // 🔴 FUNCIÓN: BUSCAR PASAJERO HABITUAL POR CELULAR
         function buscarPasajeroHabitual() {
-            console.log('🔴 Entrando a buscarPasajeroHabitual()');
             const celInput = document.getElementById('cel_pasaj');
             const celular = celInput.value.trim();
-            console.log('📱 Celular a buscar:', celular);
 
             if (celular.length < 8) {
-                console.log('⛔ Celular demasiado corto (menos de 8 dígitos)');
                 return;
             }
 
-            console.log('📡 Enviando petición al servidor...');
             fetch('obtener_pasajero_habitual.php?celular=' + encodeURIComponent(celular))
                 .then(response => {
-                    console.log('📥 Respuesta recibida del servidor (raw):', response);
                     if (!response.ok) {
                         throw new Error('HTTP error! status: ' + response.status);
                     }
                     return response.json();
                 })
                 .then(data => {
-                    console.log('📦 Datos parseados:', data);
                     if (data && data.id) {
-                        console.log('✅ Pasajero encontrado, cargando datos...');
                         document.getElementById('nombre_pasaj').value = data.nombre || '';
                         document.getElementById('dir_origen').value = data.origen || '';
                         document.getElementById('dir_destino').value = data.destino || '';
@@ -649,8 +676,6 @@ if (isset($_GET['editar'])) {
                         if (!editandoViaje) {
                             document.getElementById('fecha').readOnly = false;
                         }
-                    } else {
-                        console.log('⚠️ Pasajero no encontrado en la base de datos');
                     }
                 })
                 .catch(error => {
@@ -694,9 +719,17 @@ if (isset($_GET['editar'])) {
 
         document.addEventListener("DOMContentLoaded", function() {
             console.log('🚀 Página cargada, inicializando...');
+
+            // Estado del viaje
             const inputEstado = document.getElementById("estado_oculto");
             if (inputEstado) {
-                seleccionarEstado(inputEstado.value);
+                if (!editandoViaje) {
+                    inputEstado.value = 'Pendiente';
+                    seleccionarEstado('Pendiente');
+                    fechaActual();
+                } else {
+                    seleccionarEstado(inputEstado.value);
+                }
             }
 
             const inputCategoria = document.getElementById("categoria_movil_oculto");
@@ -716,43 +749,53 @@ if (isset($_GET['editar'])) {
 
             setTimeout(verificarGuardarRecorrido, 500);
 
-            // 🔴 EVENTO DE BÚSQUEDA AUTOMÁTICA (CON DEBUG)
+            // 🔴 EVENTO DE BÚSQUEDA AUTOMÁTICA POR CELULAR
             const celInput = document.getElementById('cel_pasaj');
-            console.log('🔍 Buscando campo id="cel_pasaj":', celInput);
 
             if (celInput) {
-                console.log('✅ Campo cel_pasaj encontrado, asignando eventos...');
-
                 let timeoutId;
 
-                // Evento input: cada vez que escribes, con retardo de 500ms
                 celInput.addEventListener('input', function(e) {
                     const celular = this.value.trim();
-                    console.log('🟢 Escribiendo... Longitud actual:', celular.length);
 
                     clearTimeout(timeoutId);
                     if (celular.length >= 8) {
-                        console.log('⏳ Longitud suficiente (>=8), programando búsqueda...');
                         timeoutId = setTimeout(() => {
-                            console.log('⏰ Ejecutando búsqueda programada');
                             buscarPasajeroHabitual();
                         }, 500);
-                    } else {
-                        console.log('⏳ Longitud insuficiente, esperando más dígitos');
                     }
                 });
 
-                // Evento keydown: Enter para búsqueda inmediata
                 celInput.addEventListener('keydown', function(e) {
                     if (e.key === 'Enter') {
                         e.preventDefault();
-                        console.log('⏎ Enter presionado, búsqueda inmediata');
                         clearTimeout(timeoutId);
                         buscarPasajeroHabitual();
                     }
                 });
-            } else {
-                console.error('❌ No se encontró el elemento con id="cel_pasaj". Revisa el HTML.');
+            }
+
+            // 🔴 NUEVO: FORZAR FECHA ACTUAL ANTES DE ENVIAR EL FORMULARIO
+            const form = document.querySelector('form');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    const estado = document.getElementById('estado_oculto').value;
+                    const fecha = document.getElementById('fecha');
+                    const hora = document.getElementById('hora');
+
+                    // Si es Pendiente, forzar fecha y hora actual
+                    if (estado === 'Pendiente') {
+                        const ahora = new Date();
+                        const yyyy = ahora.getFullYear();
+                        const mm = String(ahora.getMonth() + 1).padStart(2, '0');
+                        const dd = String(ahora.getDate()).padStart(2, '0');
+                        const hh = String(ahora.getHours()).padStart(2, '0');
+                        const mi = String(ahora.getMinutes()).padStart(2, '0');
+
+                        fecha.value = `${yyyy}-${mm}-${dd}`;
+                        hora.value = `${hh}:${mi}`;
+                    }
+                });
             }
         });
 
@@ -803,7 +846,6 @@ if (isset($_GET['editar'])) {
         function validarFormulario() {
             const nombre = document.getElementById('nombre_pasaj');
             const origen = document.getElementById('dir_origen');
-            const destino = document.getElementById('dir_destino');
             const categoria = document.getElementById('categoria_movil_oculto');
 
             if (!nombre.value.trim()) {
@@ -817,13 +859,6 @@ if (isset($_GET['editar'])) {
                 origen.focus();
                 return false;
             }
-
-            // 🔴 ELIMINAMOS LA VALIDACIÓN DEL DESTINO
-            // if (!destino.value.trim()) {
-            //     alert("❌ El campo 'Destino' es obligatorio");
-            //     destino.focus();
-            //     return false;
-            // }
 
             if (!categoria.value) {
                 alert("❌ Selecciona una categoría de móvil");
@@ -877,8 +912,6 @@ if (isset($_GET['editar'])) {
                 tiempo: tiempo
             };
 
-            console.log('📤 Guardando recorrido:', data);
-
             fetch('guardar_recorrido.php', {
                     method: 'POST',
                     headers: {
@@ -919,7 +952,7 @@ if (isset($_GET['editar'])) {
 <body>
 
     <div class="container">
-        <span <strong><?php echo $nombre_usuario ?></strong></span>
+        <span><strong><?php echo $nombre_usuario ?></strong></span>
 
         <div class="card">
 
@@ -983,8 +1016,6 @@ if (isset($_GET['editar'])) {
 
                 <!-- ================= COLUMNA DERECHA ================= -->
                 <div class="col">
-
-
 
                     <div class="form-group">
                         <label>📍 Origen</label>

@@ -2,12 +2,49 @@
 include_once "../../../funciones/funciones.php";
 protegerPagina([0, 3]);
 
-$usuario = nombre_usuario();
+// ============================================================
+// DETERMINAR ESTADO DEL VIAJE AL GUARDAR
+// ============================================================
+function determinarEstadoViaje($fecha, $hora)
+{
+    // Si no hay fecha u hora, el viaje es Pendiente por defecto
+    if (empty($fecha) || empty($hora)) {
+        return 'Pendiente';
+    }
 
+    $fecha_hora_completa = $fecha . ' ' . $hora;
+    $timestamp_seleccionado = strtotime($fecha_hora_completa);
+    $timestamp_ahora = time();
+
+    // Si la fecha/hora es futura, el viaje es Diferido
+    if ($timestamp_seleccionado > $timestamp_ahora) {
+        return 'Diferido';
+    } else {
+        return 'Pendiente';
+    }
+}
+
+$usuario = nombre_usuario();
 $nombre_usuario = $usuario['nombre'];
 $usuario_id = $usuario['id'];
 
+// ============================================================
+// PROCESAR GUARDADO DEL VIAJE
+// ============================================================
 if (isset($_POST['guardar'])) {
+    // Obtener fecha y hora con validación
+    $fecha = isset($_POST['fecha']) && !empty($_POST['fecha']) ? $_POST['fecha'] : date('Y-m-d');
+    $hora = isset($_POST['hora']) && !empty($_POST['hora']) ? $_POST['hora'] : date('H:i');
+
+    // Determinar estado automáticamente
+    $estado = determinarEstadoViaje($fecha, $hora);
+
+    // Agregar los valores al POST
+    $_POST['fecha'] = $fecha;
+    $_POST['hora'] = $hora;
+    $_POST['estado'] = $estado;
+
+    // Guardar el viaje
     guardarViaje($_POST);
     header("Location: lista_viajes.php");
     exit;
@@ -620,15 +657,16 @@ if ($viaje && !empty($viaje['asignado_a'])) {
                 if (fecha && hora) {
                     fecha.readOnly = false;
                     hora.readOnly = false;
+                    if (!fecha.value) {
+                        fechaActual();
+                    }
                 }
             } else {
                 inputEstado.value = 'Pendiente';
                 btnInmediato.classList.add('activo-inmediato');
                 btnDiferido.classList.remove('activo-diferido');
                 contenedorFechaHora.style.display = 'none';
-                if (!editandoViaje) {
-                    fechaActual();
-                }
+                fechaActual();
                 if (fecha && hora) {
                     fecha.readOnly = true;
                     hora.readOnly = true;
@@ -680,37 +718,26 @@ if ($viaje && !empty($viaje['asignado_a'])) {
             fetch('obtener_centros.php?id_empresa=' + empresa)
                 .then(response => {
                     if (!response.ok) throw new Error('HTTP Status ' + response.status);
-                    return response.text();
+                    return response.json();
                 })
-                .then(texto => {
-                    try {
-                        let datos = JSON.parse(texto);
+                .then(data => {
+                    console.log('Centros de costo cargados:', data);
+                    comboCC.innerHTML = '<option value="">-- Seleccione Centro de Costo --</option>';
 
-                        if (datos.error) {
-                            comboCC.innerHTML = '<option value="">Error: ' + datos.error + '</option>';
-                            return;
-                        }
-
-                        comboCC.innerHTML = '<option value="">-- Seleccione Centro de Costo --</option>';
-
-                        if (Array.isArray(datos) && datos.length > 0) {
-                            datos.forEach(cc => {
-                                let esSelected = (ccPreseleccionado == cc.id) ? 'selected' : '';
-                                let nombre = cc.nombre || 'Sin nombre';
-                                let codigo = cc.id_centro_costo ? cc.id_centro_costo + ' - ' : '';
-                                comboCC.innerHTML += '<option value="' + cc.id + '" ' + esSelected + '>' + codigo + nombre + '</option>';
-                            });
-                        } else {
-                            comboCC.innerHTML = '<option value="">No hay centros de costo para esta empresa</option>';
-                        }
-                    } catch (e) {
-                        console.error("Error parseando centros:", texto);
-                        comboCC.innerHTML = '<option value="">Error al cargar centros</option>';
+                    if (Array.isArray(data) && data.length > 0) {
+                        data.forEach(cc => {
+                            let esSelected = (ccPreseleccionado == cc.id) ? 'selected' : '';
+                            let nombre = cc.nombre || 'Sin nombre';
+                            let codigo = cc.id_centro_costo ? cc.id_centro_costo + ' - ' : '';
+                            comboCC.innerHTML += '<option value="' + cc.id + '" ' + esSelected + '>' + codigo + nombre + '</option>';
+                        });
+                    } else {
+                        comboCC.innerHTML = '<option value="">No hay centros de costo para esta empresa</option>';
                     }
                 })
                 .catch(error => {
                     console.error('Error en fetch centros:', error);
-                    comboCC.innerHTML = '<option value="">Error de conexión</option>';
+                    comboCC.innerHTML = '<option value="">Error al cargar centros</option>';
                 });
         }
 
@@ -736,37 +763,26 @@ if ($viaje && !empty($viaje['asignado_a'])) {
             fetch(url)
                 .then(response => {
                     if (!response.ok) throw new Error('HTTP Status ' + response.status);
-                    return response.text();
+                    return response.json();
                 })
-                .then(texto => {
-                    try {
-                        let datos = JSON.parse(texto);
+                .then(data => {
+                    console.log('Autorizantes cargados:', data);
+                    comboAut.innerHTML = '<option value="">-- Seleccione Autorizante --</option>';
 
-                        if (datos.error) {
-                            comboAut.innerHTML = '<option value="">Error: ' + datos.error + '</option>';
-                            return;
-                        }
-
-                        comboAut.innerHTML = '<option value="">-- Seleccione Autorizante --</option>';
-
-                        if (Array.isArray(datos) && datos.length > 0) {
-                            window.autorizantesCargados = datos;
-                            datos.forEach(a => {
-                                let esSelected = (autPreseleccionado == a.id) ? 'selected' : '';
-                                let tel = a.celular ? ' - ' + formatearCelular(a.celular) : '';
-                                comboAut.innerHTML += '<option value="' + a.id + '" ' + esSelected + '>' + a.nombre + tel + '</option>';
-                            });
-                        } else {
-                            comboAut.innerHTML = '<option value="">No hay autorizantes para esta empresa</option>';
-                        }
-                    } catch (e) {
-                        console.error("Error parseando autorizantes:", texto);
-                        comboAut.innerHTML = '<option value="">Error al cargar autorizantes</option>';
+                    if (Array.isArray(data) && data.length > 0) {
+                        window.autorizantesCargados = data;
+                        data.forEach(a => {
+                            let esSelected = (autPreseleccionado == a.id) ? 'selected' : '';
+                            let tel = a.celular ? ' - ' + formatearCelular(a.celular) : '';
+                            comboAut.innerHTML += '<option value="' + a.id + '" ' + esSelected + '>' + a.nombre + tel + '</option>';
+                        });
+                    } else {
+                        comboAut.innerHTML = '<option value="">No hay autorizantes para esta empresa</option>';
                     }
                 })
                 .catch(error => {
                     console.error('Error en fetch autorizantes:', error);
-                    comboAut.innerHTML = '<option value="">Error de conexión</option>';
+                    comboAut.innerHTML = '<option value="">Error al cargar autorizantes</option>';
                 });
         }
 
@@ -905,7 +921,6 @@ if ($viaje && !empty($viaje['asignado_a'])) {
         function validarFormulario() {
             const nombre = document.getElementById('nombre_pasaj');
             const origen = document.getElementById('dir_origen');
-            const destino = document.getElementById('dir_destino');
             const categoria = document.getElementById('categoria_movil_oculto');
 
             if (!nombre.value.trim()) {
@@ -935,7 +950,13 @@ if ($viaje && !empty($viaje['asignado_a'])) {
             // Estado del viaje
             const inputEstado = document.getElementById("estado_oculto");
             if (inputEstado) {
-                seleccionarEstado(inputEstado.value);
+                if (!editandoViaje) {
+                    inputEstado.value = 'Pendiente';
+                    seleccionarEstado('Pendiente');
+                    fechaActual();
+                } else {
+                    seleccionarEstado(inputEstado.value);
+                }
             }
 
             // Categoría
@@ -949,9 +970,15 @@ if ($viaje && !empty($viaje['asignado_a'])) {
             let ccPrevio = "<?= $viaje['id_cc'] ?? '' ?>";
             let autPrevio = "<?= $viaje['id_autorizante'] ?? '' ?>";
 
+            console.log('Empresa seleccionada:', empresaSeleccionada);
+            console.log('CC previo:', ccPrevio);
+            console.log('Aut previo:', autPrevio);
+
             if (empresaSeleccionada) {
                 cargarCentros(empresaSeleccionada, ccPrevio);
-                cargarAutorizantes(ccPrevio || null, empresaSeleccionada, autPrevio);
+                setTimeout(function() {
+                    cargarAutorizantes(ccPrevio || null, empresaSeleccionada, autPrevio);
+                }, 300);
             }
 
             // Verificar si ya hay recorrido guardado
@@ -972,12 +999,15 @@ if ($viaje && !empty($viaje['asignado_a'])) {
             // Evento: Cambio de empresa
             document.getElementById('cc').addEventListener('change', function() {
                 let empresa = this.value;
+                console.log('Cambio de empresa a:', empresa);
                 document.getElementById('id_cc').innerHTML = '<option value="">Seleccione Centro de Costo</option>';
                 document.getElementById('id_autorizante').innerHTML = '<option value="">Seleccione Autorizante</option>';
 
                 if (empresa) {
                     cargarCentros(empresa, null);
-                    cargarAutorizantes(null, empresa, null);
+                    setTimeout(function() {
+                        cargarAutorizantes(null, empresa, null);
+                    }, 300);
                 } else {
                     document.getElementById('contenedor_cc').style.display = 'none';
                     document.getElementById('contenedor_autorizante').style.display = 'none';
@@ -988,6 +1018,7 @@ if ($viaje && !empty($viaje['asignado_a'])) {
             document.getElementById('id_cc').addEventListener('change', function() {
                 let id_cc = this.value;
                 let empresa = document.getElementById('cc').value;
+                console.log('Cambio de CC a:', id_cc);
                 if (empresa) {
                     cargarAutorizantes(id_cc || null, empresa, null);
                 }
@@ -996,16 +1027,12 @@ if ($viaje && !empty($viaje['asignado_a'])) {
             // Evento: Selección de autorizante
             document.getElementById('id_autorizante').addEventListener('change', function() {
                 let idSeleccionado = this.value;
+                console.log('Autorizante seleccionado:', idSeleccionado);
                 if (idSeleccionado && window.autorizantesCargados) {
                     let autorizante = window.autorizantesCargados.find(a => a.id == idSeleccionado);
                     if (autorizante) {
                         document.getElementById('nombre_pasaj').value = autorizante.nombre || '';
                         document.getElementById('cel_pasaj').value = autorizante.celular || '';
-
-                        if (autorizante.id_centro_costo && !document.getElementById('id_cc').value) {
-                            document.getElementById('id_cc').value = autorizante.id_centro_costo;
-                            cargarAutorizantes(autorizante.id_centro_costo, document.getElementById('cc').value, idSeleccionado);
-                        }
                     }
                 }
             });
@@ -1017,7 +1044,7 @@ if ($viaje && !empty($viaje['asignado_a'])) {
 <body>
 
     <div class="container">
-        <span <strong><?php echo $nombre_usuario ?></strong></span>
+        <span><strong><?php echo $nombre_usuario ?></strong></span>
         <div class="card">
 
             <h3><?= $viaje ? "Editar Viaje" : "Nuevo Viaje de Cuenta Corriente"; ?></h3>

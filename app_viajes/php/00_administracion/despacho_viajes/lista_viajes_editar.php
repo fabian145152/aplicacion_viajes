@@ -2,7 +2,7 @@
 include_once "../../../funciones/funciones.php";
 protegerPagina([0, 3]);
 
-include_once '../seteos/min_diferido.php';
+include_once '../seteos/min_diferido_config.php';
 
 $viaje_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 

@@ -1,7 +1,25 @@
 <?php
 include_once "../../../funciones/funciones.php";
+
+// ===== CARGAR CONFIGURACIÓN DE TIEMPOS (SOLO LECTURA, NO MOSTRAR) =====
+$config_file = __DIR__ . '/../seteos/min_diferido_config.php';
+if (file_exists($config_file)) {
+    include_once $config_file;
+}
+
+// Definir valores por defecto si no existen (SOLO PARA USO INTERNO)
+if (!defined('MIN_DIFERIDO')) {
+    define('MIN_DIFERIDO', 60);
+}
+if (!defined('TIEMPO_AIR')) {
+    define('TIEMPO_AIR', 30);
+}
+
 protegerPagina([0, 3]);
 
+// ===== EJECUTAR ACTUALIZACIÓN DE VIAJES DIFERIDOS (SIN MOSTRAR NADA) =====
+// La función ya está definida en funciones.php
+$viajes_actualizados = actualizarDiferidosAPendientes();
 
 $conn = conexion();
 
@@ -9,6 +27,8 @@ $usuario = nombre_usuario();
 
 $nombre_usuario = $usuario['nombre'];
 $usuario_id = $usuario['id'];
+// ... resto del código
+
 
 // --- 1. RECIBIR EL FILTRO DESDE LA URL ---
 $filtro_estado = isset($_GET['filtro']) ? $_GET['filtro'] : 'pendiente';
@@ -30,11 +50,11 @@ if (isset($_GET['desasignar'])) {
     $viaje_id = (int)$_GET['desasignar'];
     $filtro_actual = $_GET['filtro'] ?? 'pendiente';
 
-    $stmt = $conn->prepare("UPDATE viajes_despacho 
-                            SET asignado_a = NULL, 
-                                fecha_asignacion = NULL, 
-                                estado = 'Pendiente' 
-                            WHERE id = ?");
+    $stmt = $conn->prepare("UPDATE viajes_despacho
+SET asignado_a = NULL,
+fecha_asignacion = NULL,
+estado = 'Pendiente'
+WHERE id = ?");
     $stmt->execute([$viaje_id]);
 
     header("Location: lista_viajes.php?filtro=" . $filtro_actual);
@@ -193,7 +213,6 @@ $viajes = obtenerViajesFiltrados($filtro_estado);
             color: #333;
         }
 
-        /* ===== RELOJ ===== */
         .reloj-panel {
             display: flex;
             justify-content: flex-end;
@@ -207,6 +226,7 @@ $viajes = obtenerViajesFiltrados($filtro_estado);
             border-radius: 5px;
             margin-bottom: 12px;
             letter-spacing: 1px;
+            gap: 5px;
         }
 
         .reloj-icono {
@@ -873,6 +893,26 @@ $viajes = obtenerViajesFiltrados($filtro_estado);
         }
     </style>
     <script>
+        // ============================================================
+        // VERIFICAR VIAJES DIFERIDOS CADA 30 SEGUNDOS
+        // ============================================================
+        function verificarDiferidos() {
+            fetch('verificar_diferidos.php')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.actualizados > 0) {
+                        // Recargar la página para mostrar los cambios
+                        location.reload();
+                    }
+                })
+                .catch(error => console.error('Error verificando diferidos:', error));
+        }
+
+        // Iniciar la verificación cada 30 segundos
+        setInterval(verificarDiferidos, 30000);
+
+
+
         // ================= LÓGICA JAVASCRIPT =================
 
         function evaluarAccion(selectElement, viajeId) {
@@ -988,17 +1028,26 @@ $viajes = obtenerViajesFiltrados($filtro_estado);
             }
         });
 
-        // ================= RELOJ =================
+        // ================= RELOJ Y FECHA =================
         function iniciarReloj() {
             const reloj = document.getElementById('reloj-digital');
-            if (!reloj) return;
+            const fecha = document.getElementById('fecha-digital');
+            if (!reloj || !fecha) return;
 
             function actualizar() {
                 const ahora = new Date();
+
+                // Hora
                 const horas = String(ahora.getHours()).padStart(2, '0');
                 const minutos = String(ahora.getMinutes()).padStart(2, '0');
                 const segundos = String(ahora.getSeconds()).padStart(2, '0');
                 reloj.textContent = `${horas}:${minutos}:${segundos}`;
+
+                // Fecha
+                const dia = String(ahora.getDate()).padStart(2, '0');
+                const mes = String(ahora.getMonth() + 1).padStart(2, '0');
+                const anio = ahora.getFullYear();
+                fecha.textContent = `${dia}/${mes}/${anio}`;
             }
             actualizar();
             setInterval(actualizar, 1000);
@@ -1080,10 +1129,13 @@ $viajes = obtenerViajesFiltrados($filtro_estado);
             <!-- TITULO -->
             <h3 class="titulo-pagina">📋 Listado de Viajes <?php echo ($filtro_estado != 'todos') ? '(' . ucfirst($filtro_estado) . ')' : 'Activos'; ?></h3>
 
-            <!-- RELOJ -->
+            <!-- RELOJ Y FECHA -->
             <div class="reloj-panel">
                 <span class="reloj-icono">🕒</span>
                 <span id="reloj-digital">00:00:00</span>
+                <span style="margin: 0 10px; color: #6c757d;">|</span>
+                <span class="reloj-icono">📅</span>
+                <span id="fecha-digital">00/00/0000</span>
             </div>
 
             <!-- TABLA -->

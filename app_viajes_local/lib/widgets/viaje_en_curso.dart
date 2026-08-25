@@ -66,6 +66,7 @@ class _ViajeEnCursoPageState extends State<ViajeEnCursoPage> {
       final viajeId = widget.viaje['id'];
       final url = Uri.parse(
           'http://192.168.0.225/aplicacion_viajes/app_viajes/php/01_mapeo/obtener_viaje_estado.php?id=$viajeId');
+      //'http://181.47.100.96:8081/aplicacion_viajes/app_viajes/php/01_mapeo/obtener_viaje_estado.php?id=$viajeId');
 
       final response = await http.get(url).timeout(const Duration(seconds: 5));
 
@@ -92,7 +93,7 @@ class _ViajeEnCursoPageState extends State<ViajeEnCursoPage> {
         final viajeId = widget.viaje['id'];
         final url = Uri.parse(
             'http://192.168.0.225/aplicacion_viajes/app_viajes/php/01_mapeo/obtener_viaje_estado.php?id=$viajeId');
-
+        //'http://181.47.100.96:8081/aplicacion_viajes/app_viajes/php/01_mapeo/obtener_viaje_estado.php?id=$viajeId');
         final response =
             await http.get(url).timeout(const Duration(seconds: 5));
 
@@ -208,6 +209,7 @@ class _ViajeEnCursoPageState extends State<ViajeEnCursoPage> {
       final viajeId = widget.viaje['id'];
       final url = Uri.parse(
           'http://192.168.0.225/aplicacion_viajes/app_viajes/php/01_mapeo/cambiar_a_en_curso.php');
+      //'http://181.47.100.96:8081/aplicacion_viajes/app_viajes/php/01_mapeo/cambiar_a_en_curso.php');
 
       final body = jsonEncode({
         'viaje_id': viajeId,

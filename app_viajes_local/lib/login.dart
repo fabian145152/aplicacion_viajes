@@ -21,10 +21,12 @@ class _LoginPageState extends State<LoginPage> {
 
   final List<String> _urlsToTry = [
     "http://192.168.0.225/aplicacion_viajes/app_viajes/php/01_mapeo/login.php",
+    "http://181.47.100.96:8081/aplicacion_viajes/app_viajes/php/01_mapeo/login.php",
   ];
 
   final String _actualizarLoginUrl =
       "http://192.168.0.225/aplicacion_viajes/app_viajes/php/01_mapeo/actualizar_login.php";
+      //"http://181.47.100.96:8081/aplicacion_viajes/app_viajes/php/01_mapeo/actualizar_login.php";
 
   void _log(String message) {
     if (kDebugMode) {

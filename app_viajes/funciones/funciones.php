@@ -1,44 +1,64 @@
 <?php
 
-// Incluir el archivo de configuración de tiempos
-include_once __DIR__ . '/../php/00_administracion/seteos/min_diferido.php';
+// ============================================================
+// CARGAR CONFIGURACIÓN DE TIEMPOS (SOLO LA CONFIGURACIÓN, NO LA INTERFAZ)
+// ============================================================
+$config_file = __DIR__ . '/../php/00_administracion/seteos/min_diferido_config.php';
+if (file_exists($config_file)) {
+    include_once $config_file;
+}
 
+// Definir valores por defecto si no existen (SOLO PARA USO INTERNO)
+if (!defined('MIN_DIFERIDO')) {
+    define('MIN_DIFERIDO', 60);
+}
+if (!defined('TIEMPO_AIR')) {
+    define('TIEMPO_AIR', 30);
+}
 
 // 🔴 ESTABLECER ZONA HORARIA DE ARGENTINA PARA TODO EL SISTEMA
 date_default_timezone_set('America/Argentina/Buenos_Aires');
 
-// Incluir el archivo de configuración de tiempos
-include_once __DIR__ . '/../php/00_administracion/seteos/min_diferido.php';
+// ... resto del código (conexion, funciones, etc.)
+// ============================================================
+// FUNCIÓN PARA ACTUALIZAR VIAJES DIFERIDOS A PENDIENTE
+// ============================================================
+function actualizarDiferidosAPendientes()
+{
+    $conn = conexion();
 
+    // Usar el valor de MIN_DIFERIDO
+    $min_diferido = defined('MIN_DIFERIDO') ? MIN_DIFERIDO : 60;
 
-/*
+    // Calcular el tiempo límite (hora actual + minutos de anticipación)
+    $fecha_limite = date('Y-m-d H:i:s', strtotime("+$min_diferido minutes"));
 
-$host = "localhost";
-$dbname = "app_viajes";
-$user = "root";
-$password = "belgrado";
-try {
-    // Aquí es donde nace $db
-    $db = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $user, $password);
+    // Actualizar viajes diferidos cuya fecha/hora está dentro del margen
+    $stmt = $conn->prepare("UPDATE viajes_despacho 
+                            SET estado = 'Pendiente' 
+                            WHERE estado = 'Diferido' 
+                            AND CONCAT(fecha, ' ', hora) <= ?");
+    $stmt->execute([$fecha_limite]);
 
-    // Configuración para que PHP nos avise si hay errores de SQL
-    $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch (PDOException $e) {
-    echo "Error de conexión: " . $e->getMessage();
-    exit;
+    return $stmt->rowCount();
 }
-*/
 
-function nombre_usuario() { 
-    
-    $id = $_SESSION['id_usuario']; 
 
-    $sql = "SELECT * FROM usuarios WHERE id = :id LIMIT 1"; 
-    $pdo = conexion(); 
-    $stmt = $pdo->prepare($sql); 
-    $stmt->bindParam(':id', $id, PDO::PARAM_INT); 
-    $stmt->execute(); 
-    $row = $stmt->fetch(PDO::FETCH_ASSOC); 
+// Ejecutar la actualización al cargar la página
+$viajes_actualizados = actualizarDiferidosAPendientes();
+
+
+function nombre_usuario()
+{
+
+    $id = $_SESSION['id_usuario'];
+
+    $sql = "SELECT * FROM usuarios WHERE id = :id LIMIT 1";
+    $pdo = conexion();
+    $stmt = $pdo->prepare($sql);
+    $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+    $stmt->execute();
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
     return [
         'id' => $id,
