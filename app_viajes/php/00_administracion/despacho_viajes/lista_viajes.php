@@ -39,8 +39,20 @@ if (isset($_POST['asignar_movil'])) {
     $movil_id = $_POST['movil_id'];
     $filtro_actual = $_POST['filtro_actual'] ?? 'pendiente';
 
+    // Obtener datos antes de asignar
+    $datos_anteriores = obtenerRegistroParaAuditoria('viajes_despacho', $viaje_id);
+
+    $conn = conexion();
     $stmt = $conn->prepare("UPDATE viajes_despacho SET asignado_a = ?, estado = 'En Curso', fecha_asignacion = NOW() WHERE id = ?");
-    $stmt->execute([$movil_id, $viaje_id]);
+    $resultado = $stmt->execute([$movil_id, $viaje_id]);
+
+    if ($resultado && $datos_anteriores) {
+        $datos_nuevos = $datos_anteriores;
+        $datos_nuevos['asignado_a'] = $movil_id;
+        $datos_nuevos['estado'] = 'En Curso';
+        $datos_nuevos['fecha_asignacion'] = date('Y-m-d H:i:s');
+        registrarAuditoria('viajes_despacho', $viaje_id, 'U', $datos_anteriores, $datos_nuevos);
+    }
 
     header("Location: lista_viajes.php?filtro=" . $filtro_actual);
     exit;
@@ -50,12 +62,24 @@ if (isset($_GET['desasignar'])) {
     $viaje_id = (int)$_GET['desasignar'];
     $filtro_actual = $_GET['filtro'] ?? 'pendiente';
 
+    // Obtener datos antes de desasignar
+    $datos_anteriores = obtenerRegistroParaAuditoria('viajes_despacho', $viaje_id);
+    
+    $conn = conexion();
     $stmt = $conn->prepare("UPDATE viajes_despacho
-SET asignado_a = NULL,
-fecha_asignacion = NULL,
-estado = 'Pendiente'
-WHERE id = ?");
-    $stmt->execute([$viaje_id]);
+                            SET asignado_a = NULL,
+                                fecha_asignacion = NULL,
+                                estado = 'Pendiente'
+                            WHERE id = ?");
+    $resultado = $stmt->execute([$viaje_id]);
+    
+    if ($resultado && $datos_anteriores) {
+        $datos_nuevos = $datos_anteriores;
+        $datos_nuevos['asignado_a'] = null;
+        $datos_nuevos['fecha_asignacion'] = null;
+        $datos_nuevos['estado'] = 'Pendiente';
+        registrarAuditoria('viajes_despacho', $viaje_id, 'U', $datos_anteriores, $datos_nuevos);
+    }
 
     header("Location: lista_viajes.php?filtro=" . $filtro_actual);
     exit;
@@ -65,9 +89,18 @@ if (isset($_GET['cancelar'])) {
     $viaje_id = (int)$_GET['cancelar'];
     $filtro_actual = $_GET['filtro'] ?? 'pendiente';
 
+    // Obtener datos antes de cancelar
+    $datos_anteriores = obtenerRegistroParaAuditoria('viajes_despacho', $viaje_id);
+
     $conn = conexion();
     $stmt = $conn->prepare("UPDATE viajes_despacho SET estado = 'Cancelado' WHERE id = ?");
-    $stmt->execute([$viaje_id]);
+    $resultado = $stmt->execute([$viaje_id]);
+
+    if ($resultado && $datos_anteriores) {
+        $datos_nuevos = $datos_anteriores;
+        $datos_nuevos['estado'] = 'Cancelado';
+        registrarAuditoria('viajes_despacho', $viaje_id, 'U', $datos_anteriores, $datos_nuevos);
+    }
 
     header("Location: lista_viajes.php?filtro=" . $filtro_actual);
     exit;

@@ -2,6 +2,7 @@
 include_once "../../../funciones/funciones.php";
 protegerPagina([0, 3]);
 
+// ===== CARGAR CONFIGURACIÓN DE TIEMPOS =====
 include_once '../seteos/min_diferido_config.php';
 
 $viaje_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
@@ -12,7 +13,7 @@ if ($viaje_id == 0) {
     exit;
 }
 
-// Obtener datos del viaje
+// Obtener datos del viaje - USAR $conn en lugar de $db
 $conn = conexion();
 $stmt = $conn->prepare("SELECT * FROM viajes_despacho WHERE id = ?");
 $stmt->execute([$viaje_id]);
@@ -56,6 +57,9 @@ if (isset($_POST['editar_viaje'])) {
         $estado = 'Pendiente';
     }
 
+    // 🔴 OBTENER DATOS ANTERIORES PARA AUDITORÍA
+    $datos_anteriores = obtenerRegistroParaAuditoria('viajes_despacho', $viaje_id);
+
     // Actualizar incluyendo el campo 'estado' calculado automáticamente
     $stmt = $conn->prepare("UPDATE viajes_despacho SET 
         nombre_pasaj = ?,
@@ -74,7 +78,7 @@ if (isset($_POST['editar_viaje'])) {
         destino_lng = ?
         WHERE id = ?");
 
-    $stmt->execute([
+    $resultado = $stmt->execute([
         $nombre_pasaj,
         $cel_pasaj,
         $direccion_origen,
@@ -91,6 +95,23 @@ if (isset($_POST['editar_viaje'])) {
         $destino_lng,
         $viaje_id
     ]);
+
+    // 🔴 REGISTRAR AUDITORÍA SI SE ACTUALIZÓ CORRECTAMENTE
+    if ($resultado && $datos_anteriores) {
+        $datos_nuevos = [
+            'nombre_pasaj' => $nombre_pasaj,
+            'cel_pasaj' => $cel_pasaj,
+            'direccion_origen' => $direccion_origen,
+            'direccion_destino' => $direccion_destino ?? null,
+            'categoria_movil' => $categoria_movil,
+            'estado' => $estado,
+            'fecha' => $fecha,
+            'hora' => $hora,
+            'obs_operador' => $obs_operador,
+            'obs_pasaj' => $obs_pasaj
+        ];
+        registrarAuditoria('viajes_despacho', $viaje_id, 'U', $datos_anteriores, $datos_nuevos);
+    }
 
     // Cerrar el modal y recargar la página padre
     echo "<script>

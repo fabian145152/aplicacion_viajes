@@ -38,7 +38,7 @@ if ($viaje_id == 0) {
                         <button type='submit'>🔍 Buscar</button>
                     </form>
                 </div>
-                <a href='../inicio_0.php' class='btn-volver'>← Volver al Listado</a>
+                <a href='../../inicio_0.php' class='btn-volver'>← Volver al Listado</a>
             </div>
         </div>
     </body>
@@ -732,7 +732,7 @@ if ($viaje['estado'] == 'Completo' && !empty($viaje['movil_historico'])) {
                 <span class="estado">Estado: <?= estadoConColor($viaje['estado']) ?></span>
             </div>
             <div class="no-print">
-                <a href="../inicio_0.php" class="btn-volver">← Volver</a>
+                <a href="lista_viajes_completa.php" class="btn-volver">← Volver</a>
                 <a href="detalle_de_viajes.php?id=<?= $viaje_id - 1 > 0 ? $viaje_id - 1 : 1 ?>" class="btn-buscar">◀ Anterior</a>
                 <a href="detalle_de_viajes.php?id=<?= $viaje_id + 1 ?>" class="btn-buscar">▶ Siguiente</a>
                 <button class="btn-imprimir" onclick="window.print()">🖨️ Imprimir</button>

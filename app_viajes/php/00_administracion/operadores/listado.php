@@ -137,7 +137,7 @@ if ($filtro_estado) {
                             <?php echo $usuario_a_editar ? "Actualizar" : "Crear Usuario"; ?>
                         </button>
 
-                        <a href="../menu_admin.php" class="btn btn-gray">SALIR</a>
+                        <a href="../../inicio_0.php" class="btn btn-gray">SALIR</a>
 
                         <?php if ($usuario_a_editar): ?>
                             <a href="operadores.php" class="btn btn-warning">Cancelar</a>

@@ -1,9 +1,9 @@
 <?php
 // ============================================================
 // CONFIGURACIÓN DE TIEMPOS PARA VIAJES DIFERIDOS
-// Generado automáticamente - 25/08/2026 16:18:13
+// Generado automáticamente - 25/08/2026 18:42:55
 // ============================================================
 
-define('MIN_DIFERIDO', 10);
-define('TIEMPO_AIR', 30);
+$MIN_DIFERIDO = 10;
+$TIEMPO_AIR = 30;
 ?>

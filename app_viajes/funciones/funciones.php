@@ -150,6 +150,9 @@ function obtenerRecorridosPorMovil($movil, $limite = 50)
 // ==============================================================
 // GUARDAR VIAJE EN viajes_despacho
 // ==============================================================
+// ============================================================
+// GUARDAR VIAJE EN viajes_despacho CON AUDITORÍA
+// ============================================================
 function guardarViaje($datos)
 {
     $conn = conexion();
@@ -157,6 +160,9 @@ function guardarViaje($datos)
     // Verificar si estamos editando o creando
     if (isset($datos['id']) && !empty($datos['id'])) {
         // ========== ACTUALIZAR (EDITAR) ==========
+        // Obtener datos anteriores para auditoría
+        $datos_anteriores = obtenerRegistroParaAuditoria('viajes_despacho', $datos['id']);
+
         $sql = "UPDATE viajes_despacho SET 
             cel_pasaj = ?,
             nombre_pasaj = ?,
@@ -178,15 +184,13 @@ function guardarViaje($datos)
         WHERE id = ?";
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute([
+        $resultado = $stmt->execute([
             $datos['cel_pasaj'],
             $datos['nombre_pasaj'],
             $datos['direccion_origen'],
-            // 🔴 Si destino está vacío, guardamos NULL
             !empty($datos['direccion_destino']) ? $datos['direccion_destino'] : null,
             $datos['obs_pasaj'] ?? '',
             $datos['obs_operador'] ?? '',
-            // 🔴 CAMBIO: Ahora el valor por defecto es 'Pendiente'
             $datos['estado'] ?? 'Pendiente',
             $datos['fecha'] ?? null,
             $datos['hora'] ?? null,
@@ -200,6 +204,25 @@ function guardarViaje($datos)
             $datos['id_autorizante'] ?? 0,
             $datos['id']
         ]);
+
+        if ($resultado) {
+            // Registrar auditoría
+            $datos_nuevos = [
+                'cel_pasaj' => $datos['cel_pasaj'],
+                'nombre_pasaj' => $datos['nombre_pasaj'],
+                'direccion_origen' => $datos['direccion_origen'],
+                'direccion_destino' => $datos['direccion_destino'] ?? null,
+                'estado' => $datos['estado'] ?? 'Pendiente',
+                'fecha' => $datos['fecha'] ?? null,
+                'hora' => $datos['hora'] ?? null,
+                'categoria_movil' => $datos['categoria_movil'] ?? '',
+                'cc' => $datos['cc'] ?? 0,
+                'id_cc' => $datos['id_cc'] ?? 0,
+                'id_autorizante' => $datos['id_autorizante'] ?? 0
+            ];
+            registrarAuditoria('viajes_despacho', $datos['id'], 'U', $datos_anteriores, $datos_nuevos);
+        }
+        return $resultado;
     } else {
         // ========== INSERTAR (NUEVO) ==========
         $sql = "INSERT INTO viajes_despacho (
@@ -225,15 +248,13 @@ function guardarViaje($datos)
         )";
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute([
+        $resultado = $stmt->execute([
             $datos['cel_pasaj'],
             $datos['nombre_pasaj'],
             $datos['direccion_origen'],
-            // 🔴 Si destino está vacío, guardamos NULL
             !empty($datos['direccion_destino']) ? $datos['direccion_destino'] : null,
             $datos['obs_pasaj'] ?? '',
             $datos['obs_operador'] ?? '',
-            // 🔴 CAMBIO: Ahora el valor por defecto es 'Pendiente'
             $datos['estado'] ?? 'Pendiente',
             $datos['fecha'] ?? null,
             $datos['hora'] ?? null,
@@ -247,8 +268,26 @@ function guardarViaje($datos)
             $datos['id_autorizante'] ?? 0
         ]);
 
-        // 🔴 Devuelve el ID del viaje recién insertado (por si lo necesitas después)
-        return $conn->lastInsertId();
+        if ($resultado) {
+            // Obtener el ID del registro insertado
+            $nuevo_id = $conn->lastInsertId();
+            // Registrar auditoría
+            $datos_nuevos = [
+                'cel_pasaj' => $datos['cel_pasaj'],
+                'nombre_pasaj' => $datos['nombre_pasaj'],
+                'direccion_origen' => $datos['direccion_origen'],
+                'direccion_destino' => $datos['direccion_destino'] ?? null,
+                'estado' => $datos['estado'] ?? 'Pendiente',
+                'fecha' => $datos['fecha'] ?? null,
+                'hora' => $datos['hora'] ?? null,
+                'categoria_movil' => $datos['categoria_movil'] ?? '',
+                'cc' => $datos['cc'] ?? 0,
+                'id_cc' => $datos['id_cc'] ?? 0,
+                'id_autorizante' => $datos['id_autorizante'] ?? 0
+            ];
+            registrarAuditoria('viajes_despacho', $nuevo_id, 'C', null, $datos_nuevos);
+        }
+        return $resultado;
     }
 }
 
@@ -286,13 +325,27 @@ function guardarUsuario($data)
     }
 
     if (!empty($id)) {
+        // ========== ACTUALIZAR ==========
+        $datos_anteriores = obtenerRegistroParaAuditoria('usuarios', $id);
+
         $sql = "UPDATE usuarios 
                 SET nombre=?, nom_apellido=?, telefono=?, email=? 
                 WHERE id=?";
-
         $stmt = $db->prepare($sql);
-        return $stmt->execute([$nombre, $nom_apellido, $telefono, $email, $id]);
+        $resultado = $stmt->execute([$nombre, $nom_apellido, $telefono, $email, $id]);
+
+        if ($resultado) {
+            $datos_nuevos = [
+                'nombre' => $nombre,
+                'nom_apellido' => $nom_apellido,
+                'telefono' => $telefono,
+                'email' => $email
+            ];
+            registrarAuditoria('usuarios', $id, 'U', $datos_anteriores, $datos_nuevos);
+        }
+        return $resultado;
     } else {
+        // ========== INSERTAR ==========
         $password = $data['password'] ?? null;
         $permisos = $data['permisos'] ?? 0;
         $estado   = $data['estado'] ?? 'activo';
@@ -306,17 +359,39 @@ function guardarUsuario($data)
         $sql = "INSERT INTO usuarios 
                 (nombre, nom_apellido, telefono, email, password, permisos, estado) 
                 VALUES (?, ?, ?, ?, ?, ?, ?)";
-
         $stmt = $db->prepare($sql);
-        return $stmt->execute([$nombre, $nom_apellido, $telefono, $email, $passHash, $permisos, $estado]);
+        $resultado = $stmt->execute([$nombre, $nom_apellido, $telefono, $email, $passHash, $permisos, $estado]);
+
+        if ($resultado) {
+            $nuevo_id = $db->lastInsertId();
+            $datos_nuevos = [
+                'nombre' => $nombre,
+                'nom_apellido' => $nom_apellido,
+                'telefono' => $telefono,
+                'email' => $email,
+                'permisos' => $permisos,
+                'estado' => $estado
+            ];
+            registrarAuditoria('usuarios', $nuevo_id, 'C', null, $datos_nuevos);
+        }
+        return $resultado;
     }
 }
 
 function eliminarUsuario($id)
 {
     $db = conexion();
+
+    $datos_anteriores = obtenerRegistroParaAuditoria('usuarios', $id);
+
     $stmt = $db->prepare("DELETE FROM usuarios WHERE id = ?");
-    return $stmt->execute([$id]);
+    $resultado = $stmt->execute([$id]);
+
+    if ($resultado && $datos_anteriores) {
+        registrarAuditoria('usuarios', $id, 'D', $datos_anteriores, null);
+    }
+
+    return $resultado;
 }
 
 function actualizarConfiguracionUsuario($data)
@@ -431,11 +506,14 @@ function guardarVehiculo($data)
     $tipo = !empty($data['tipo']) ? trim($data['tipo']) : null;
 
     if (!empty($data['id'])) {
+        // ========== ACTUALIZAR ==========
+        $datos_anteriores = obtenerRegistroParaAuditoria('vehiculos', $data['id']);
+
         $sql = "UPDATE vehiculos 
                 SET categoria=?, marca=?, modelo=?, patente=?, estado=?, color=?, tipo=?, id_chofer=?
                 WHERE id=?";
         $stmt = $pdo->prepare($sql);
-        return $stmt->execute([
+        $resultado = $stmt->execute([
             $data['categoria'],
             $data['marca'],
             $data['modelo'],
@@ -446,12 +524,28 @@ function guardarVehiculo($data)
             $id_chofer,
             $data['id']
         ]);
+
+        if ($resultado) {
+            $datos_nuevos = [
+                'categoria' => $data['categoria'],
+                'marca' => $data['marca'],
+                'modelo' => $data['modelo'],
+                'patente' => $data['patente'],
+                'estado' => $data['estado'],
+                'color' => $data['color'],
+                'tipo' => $tipo,
+                'id_chofer' => $id_chofer
+            ];
+            registrarAuditoria('vehiculos', $data['id'], 'U', $datos_anteriores, $datos_nuevos);
+        }
+        return $resultado;
     } else {
+        // ========== INSERTAR ==========
         $sql = "INSERT INTO vehiculos 
                 (categoria, marca, modelo, patente, estado, color, tipo, id_chofer)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt = $pdo->prepare($sql);
-        return $stmt->execute([
+        $resultado = $stmt->execute([
             $data['categoria'],
             $data['marca'],
             $data['modelo'],
@@ -461,14 +555,40 @@ function guardarVehiculo($data)
             $tipo,
             $id_chofer
         ]);
+
+        if ($resultado) {
+            $nuevo_id = $pdo->lastInsertId();
+            $datos_nuevos = [
+                'categoria' => $data['categoria'],
+                'marca' => $data['marca'],
+                'modelo' => $data['modelo'],
+                'patente' => $data['patente'],
+                'estado' => $data['estado'],
+                'color' => $data['color'],
+                'tipo' => $tipo,
+                'id_chofer' => $id_chofer
+            ];
+            registrarAuditoria('vehiculos', $nuevo_id, 'C', null, $datos_nuevos);
+        }
+        return $resultado;
     }
 }
 
 function borrarVehiculo($id)
 {
     $pdo = conexion();
+
+    // Obtener datos antes de eliminar
+    $datos_anteriores = obtenerRegistroParaAuditoria('vehiculos', $id);
+
     $stmt = $pdo->prepare("DELETE FROM vehiculos WHERE id=?");
-    return $stmt->execute([$id]);
+    $resultado = $stmt->execute([$id]);
+
+    if ($resultado && $datos_anteriores) {
+        registrarAuditoria('vehiculos', $id, 'D', $datos_anteriores, null);
+    }
+
+    return $resultado;
 }
 
 // ================= CHOFERES =================
@@ -519,11 +639,15 @@ function guardarChofer($data)
     }
 
     if (!empty($data['id'])) {
+        // ========== ACTUALIZAR ==========
+        // Obtener datos anteriores para auditoría
+        $datos_anteriores = obtenerRegistroParaAuditoria('choferes', $data['id']);
+
         $sql = "UPDATE choferes 
                 SET nombre=?, apellido=?, cel=?, dir=?, barrio=?, cp=?, movil=?, user=?, clave=?
                 WHERE id=?";
         $stmt = $pdo->prepare($sql);
-        return $stmt->execute([
+        $resultado = $stmt->execute([
             $data['nombre'],
             $data['apellido'],
             $data['cel'],
@@ -535,11 +659,29 @@ function guardarChofer($data)
             $data['clave'],
             $data['id']
         ]);
+
+        if ($resultado) {
+            // Registrar auditoría
+            $datos_nuevos = [
+                'nombre' => $data['nombre'],
+                'apellido' => $data['apellido'],
+                'cel' => $data['cel'],
+                'dir' => $data['dir'],
+                'barrio' => $data['barrio'],
+                'cp' => $data['cp'],
+                'movil' => $movil,
+                'user' => $data['user'],
+                'clave' => $data['clave']
+            ];
+            registrarAuditoria('choferes', $data['id'], 'U', $datos_anteriores, $datos_nuevos);
+        }
+        return $resultado;
     } else {
+        // ========== INSERTAR ==========
         $sql = "INSERT INTO choferes (nombre, apellido, cel, dir, barrio, cp, movil, user, clave) 
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt = $pdo->prepare($sql);
-        return $stmt->execute([
+        $resultado = $stmt->execute([
             $data['nombre'],
             $data['apellido'],
             $data['cel'],
@@ -550,15 +692,48 @@ function guardarChofer($data)
             $data['user'],
             $data['clave']
         ]);
+
+        if ($resultado) {
+            // Obtener el ID del registro insertado
+            $nuevo_id = $pdo->lastInsertId();
+            // Registrar auditoría
+            $datos_nuevos = [
+                'nombre' => $data['nombre'],
+                'apellido' => $data['apellido'],
+                'cel' => $data['cel'],
+                'dir' => $data['dir'],
+                'barrio' => $data['barrio'],
+                'cp' => $data['cp'],
+                'movil' => $movil,
+                'user' => $data['user'],
+                'clave' => $data['clave']
+            ];
+            registrarAuditoria('choferes', $nuevo_id, 'C', null, $datos_nuevos);
+        }
+        return $resultado;
     }
 }
 
 function borrarChofer($id)
 {
     $pdo = conexion();
+
+    // Obtener datos antes de eliminar
+    $datos_anteriores = obtenerRegistroParaAuditoria('choferes', $id);
+
+    // Desvincular vehículos
     $pdo->prepare("UPDATE vehiculos SET id_chofer = NULL WHERE id_chofer = ?")->execute([$id]);
+
+    // Eliminar el chofer
     $stmt = $pdo->prepare("DELETE FROM choferes WHERE id=?");
-    return $stmt->execute([$id]);
+    $resultado = $stmt->execute([$id]);
+
+    if ($resultado && $datos_anteriores) {
+        // Registrar auditoría
+        registrarAuditoria('choferes', $id, 'D', $datos_anteriores, null);
+    }
+
+    return $resultado;
 }
 
 function obtenerChoferesActivos()
@@ -811,11 +986,20 @@ function obtenerViajePorId($id)
 
 function borrarViaje($id)
 {
-    global $db;
-    $stmt = $db->prepare("DELETE FROM viajes_despacho WHERE id = ?");
-    $stmt->execute([$id]);
-}
+    $db = conexion();
 
+    // Obtener datos antes de eliminar
+    $datos_anteriores = obtenerRegistroParaAuditoria('viajes_despacho', $id);
+
+    $stmt = $db->prepare("DELETE FROM viajes_despacho WHERE id = ?");
+    $resultado = $stmt->execute([$id]);
+
+    if ($resultado && $datos_anteriores) {
+        registrarAuditoria('viajes_despacho', $id, 'D', $datos_anteriores, null);
+    }
+
+    return $resultado;
+}
 function obtenerCoordenadas($direccion)
 {
     if (empty($direccion)) {
@@ -833,4 +1017,71 @@ function obtenerCoordenadas($direccion)
     if (empty($resultado)) return null;
 
     return ['lat' => $resultado[0]['lat'], 'lng' => $resultado[0]['lon']];
+}
+
+
+// ============================================================
+// FUNCIÓN DE AUDITORÍA - REGISTRA CAMBIOS EN LA BASE DE DATOS
+// ============================================================
+function registrarAuditoria($tabla, $id_registro, $operacion, $datos_anteriores = null, $datos_nuevos = null)
+{
+    try {
+        $conn = conexion();
+
+        // Obtener el ID del usuario logueado
+        $usuario_id = isset($_SESSION['id_usuario']) ? $_SESSION['id_usuario'] : 0;
+
+        // Convertir arrays a JSON si es necesario
+        $json_anteriores = $datos_anteriores ? json_encode($datos_anteriores, JSON_UNESCAPED_UNICODE) : null;
+        $json_nuevos = $datos_nuevos ? json_encode($datos_nuevos, JSON_UNESCAPED_UNICODE) : null;
+
+        $sql = "INSERT INTO auditoria_general (
+            usuario_id,
+            tabla,
+            id_registro,
+            operacion,
+            datos_anteriores,
+            datos_nuevos,
+            fecha_hora
+        ) VALUES (
+            ?, ?, ?, ?, ?, ?, NOW()
+        )";
+
+        $stmt = $conn->prepare($sql);
+        return $stmt->execute([
+            $usuario_id,
+            $tabla,
+            $id_registro,
+            $operacion,
+            $json_anteriores,
+            $json_nuevos
+        ]);
+    } catch (PDOException $e) {
+        error_log("Error en auditoría: " . $e->getMessage());
+        return false;
+    }
+}
+
+// ============================================================
+// FUNCIÓN PARA OBTENER DATOS DE UN REGISTRO ANTES DE MODIFICAR
+// ============================================================
+function obtenerRegistroParaAuditoria($tabla, $id, $campos = '*')
+{
+    try {
+        $conn = conexion();
+
+        // Validar que la tabla exista para evitar inyección SQL
+        $tablas_validas = ['choferes', 'vehiculos', 'usuarios', 'viajes_despacho', 'cuenta_empresa', 'centros_costo', 'autorizantes'];
+        if (!in_array($tabla, $tablas_validas)) {
+            return null;
+        }
+
+        $sql = "SELECT $campos FROM $tabla WHERE id = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->execute([$id]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        error_log("Error obteniendo registro para auditoría: " . $e->getMessage());
+        return null;
+    }
 }
