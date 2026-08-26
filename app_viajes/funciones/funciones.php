@@ -424,7 +424,7 @@ function protegerPagina($rolesPermitidos = [])
 ?>
         <script>
             alert("No estás logueado");
-            window.location.href = "../../../index.html";
+            window.location.href = "https://www.google.com.ar";
         </script>
 <?php
     }
@@ -981,7 +981,7 @@ function obtenerCoordenadas($direccion)
     return ['lat' => $resultado[0]['lat'], 'lng' => $resultado[0]['lon']];
 }
 
-
+/*
 // ============================================================
 // FUNCIÓN DE AUDITORÍA - REGISTRA CAMBIOS EN LA BASE DE DATOS
 // ============================================================
@@ -1023,7 +1023,7 @@ function registrarAuditoria($tabla, $id_registro, $operacion, $datos_anteriores 
         return false;
     }
 }
-
+*/
 // ============================================================
 // FUNCIÓN PARA OBTENER DATOS DE UN REGISTRO ANTES DE MODIFICAR
 // ============================================================
@@ -1046,4 +1046,71 @@ function obtenerRegistroParaAuditoria($tabla, $id, $campos = '*')
         error_log("Error obteniendo registro para auditoría: " . $e->getMessage());
         return null;
     }
+}
+
+/**
+ * Registrar acción en la tabla auditoria_general
+ * 
+ * @param int    $usuario_id      ID del usuario que realiza la acción
+ * @param string $tabla           Tabla afectada (empresas, centros_costo, autorizantes, etc.)
+ * @param string $operacion       Operación: 'C' (Insert), 'U' (Update), 'D' (Delete)
+ * @param int    $id_registro     ID del registro afectado
+ * @param array  $datos_anteriores Datos antes del cambio (opcional)
+ * @param array  $datos_nuevos    Datos después del cambio (opcional)
+ * @return bool
+ */
+function registrarAuditoria($usuario_id, $tabla, $operacion, $id_registro, $datos_anteriores = null, $datos_nuevos = null)
+{
+    $conn = conexion();
+
+    // Convertir arrays a JSON
+    $json_anteriores = $datos_anteriores ? json_encode($datos_anteriores, JSON_UNESCAPED_UNICODE) : null;
+    $json_nuevos = $datos_nuevos ? json_encode($datos_nuevos, JSON_UNESCAPED_UNICODE) : null;
+
+    $sql = "INSERT INTO auditoria_general 
+            (usuario_id, tabla, operacion, id_registro, datos_anteriores, datos_nuevos) 
+            VALUES (?, ?, ?, ?, ?, ?)";
+
+    $stmt = $conn->prepare($sql);
+    return $stmt->execute([
+        $usuario_id,
+        $tabla,
+        $operacion,
+        $id_registro,
+        $json_anteriores,
+        $json_nuevos
+    ]);
+}
+
+/**
+ * Obtener datos de una empresa por ID (para auditoría)
+ */
+function obtenerEmpresaParaAuditoria($id)
+{
+    $conn = conexion();
+    $stmt = $conn->prepare("SELECT * FROM cuenta_empresa WHERE id = ?");
+    $stmt->execute([$id]);
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
+/**
+ * Obtener datos de un centro de costo por ID (para auditoría)
+ */
+function obtenerCentroCostoParaAuditoria($id)
+{
+    $conn = conexion();
+    $stmt = $conn->prepare("SELECT * FROM centros_costo WHERE id = ?");
+    $stmt->execute([$id]);
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
+/**
+ * Obtener datos de un autorizante por ID (para auditoría)
+ */
+function obtenerAutorizanteParaAuditoria($id)
+{
+    $conn = conexion();
+    $stmt = $conn->prepare("SELECT * FROM autorizantes WHERE id = ?");
+    $stmt->execute([$id]);
+    return $stmt->fetch(PDO::FETCH_ASSOC);
 }

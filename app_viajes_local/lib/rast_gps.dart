@@ -36,12 +36,12 @@ class _BotonCoordenadasState extends State<BotonCoordenadas>
   late ViajeService _viajeService;
 
   final String _actualizarLoginUrl =
-      "http://192.168.0.225/aplicacion_viajes/app_viajes/php/01_mapeo/actualizar_login.php";
-  //"http://181.47.100.96:8081/aplicacion_viajes/app_viajes/php/01_mapeo/actualizar_login.php";
+      //"http://192.168.0.225/aplicacion_viajes/app_viajes/php/01_mapeo/actualizar_login.php";
+  "http://181.47.100.96:8081/aplicacion_viajes/app_viajes/php/01_mapeo/actualizar_login.php";
 
   final String _actualizarActivoUrl =
-      "http://192.168.0.225/aplicacion_viajes/app_viajes/php/01_mapeo/actualizar_activo.php";
-  //"http://181.47.100.96:8081/aplicacion_viajes/app_viajes/php/01_mapeo/actualizar_activo.php";
+  //    "http://192.168.0.225/aplicacion_viajes/app_viajes/php/01_mapeo/actualizar_activo.php";
+  "http://181.47.100.96:8081/aplicacion_viajes/app_viajes/php/01_mapeo/actualizar_activo.php";
 
   void _log(String message) {
     if (kDebugMode) {
@@ -95,15 +95,15 @@ class _BotonCoordenadasState extends State<BotonCoordenadas>
 
     _viajeService = ViajeService(
       viajesUrl:
-          'http://192.168.0.225/aplicacion_viajes/app_viajes/php/01_mapeo/obtener_viajes_pendientes.php',
-//'http://181.47.100.96:8081/aplicacion_viajes/app_viajes/php/01_mapeo/obtener_viajes_pendientes.php',
+         // 'http://192.168.0.225/aplicacion_viajes/app_viajes/php/01_mapeo/obtener_viajes_pendientes.php',
+'http://181.47.100.96:8081/aplicacion_viajes/app_viajes/php/01_mapeo/obtener_viajes_pendientes.php',
 
       asignarUrl:
-          'http://192.168.0.225/aplicacion_viajes/app_viajes/php/01_mapeo/asignar_viaje.php',
-          //'http://181.47.100.96:8081/aplicacion_viajes/app_viajes/php/01_mapeo/asignar_viaje.php',
+      //    'http://192.168.0.225/aplicacion_viajes/app_viajes/php/01_mapeo/asignar_viaje.php',
+          'http://181.47.100.96:8081/aplicacion_viajes/app_viajes/php/01_mapeo/asignar_viaje.php',
       serverUrl:
-          'http://192.168.0.225/aplicacion_viajes/app_viajes/php/01_mapeo/recibir.php',
-          //'http://181.47.100.96:8081/aplicacion_viajes/app_viajes/php/01_mapeo/recibir.php',
+       //   'http://192.168.0.225/aplicacion_viajes/app_viajes/php/01_mapeo/recibir.php',
+          'http://181.47.100.96:8081/aplicacion_viajes/app_viajes/php/01_mapeo/recibir.php',
     );
 
     WakelockPlus.enable();

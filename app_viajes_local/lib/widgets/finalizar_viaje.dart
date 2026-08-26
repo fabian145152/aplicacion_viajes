@@ -81,8 +81,8 @@ class _FinalizarViajePageState extends State<FinalizarViajePage> {
     try {
       final viajeId = widget.viaje['id'];
       final url = Uri.parse(
-          'http://192.168.0.225/aplicacion_viajes/app_viajes/php/01_mapeo/finalizar_viaje.php');
-      // 'http://181.47.100.96:8081/aplicacion_viajes/app_viajes/php/01_mapeo/finalizar_viaje.php');
+          //'http://192.168.0.225/aplicacion_viajes/app_viajes/php/01_mapeo/finalizar_viaje.php');
+       'http://181.47.100.96:8081/aplicacion_viajes/app_viajes/php/01_mapeo/finalizar_viaje.php');
 
       // En finalizar_viaje.dart - ya está enviando movil_id
       final body = jsonEncode({
