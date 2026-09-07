@@ -65,8 +65,7 @@ class _ViajeEnCursoPageState extends State<ViajeEnCursoPage> {
     try {
       final viajeId = widget.viaje['id'];
       final url = Uri.parse(
-          //'http://192.168.0.225/aplicacion_viajes/app_viajes/php/01_mapeo/obtener_viaje_estado.php?id=$viajeId');
-      'http://181.47.100.96:8081/aplicacion_viajes/app_viajes/php/01_mapeo/obtener_viaje_estado.php?id=$viajeId');
+          'http://181.47.100.96:8081/aplicacion_viajes/app_viajes/php/01_mapeo/obtener_viaje_estado.php?id=$viajeId');
 
       final response = await http.get(url).timeout(const Duration(seconds: 5));
 
@@ -92,8 +91,7 @@ class _ViajeEnCursoPageState extends State<ViajeEnCursoPage> {
       try {
         final viajeId = widget.viaje['id'];
         final url = Uri.parse(
-            //'http://192.168.0.225/aplicacion_viajes/app_viajes/php/01_mapeo/obtener_viaje_estado.php?id=$viajeId');
-        'http://181.47.100.96:8081/aplicacion_viajes/app_viajes/php/01_mapeo/obtener_viaje_estado.php?id=$viajeId');
+            'http://181.47.100.96:8081/aplicacion_viajes/app_viajes/php/01_mapeo/obtener_viaje_estado.php?id=$viajeId');
         final response =
             await http.get(url).timeout(const Duration(seconds: 5));
 
@@ -208,8 +206,7 @@ class _ViajeEnCursoPageState extends State<ViajeEnCursoPage> {
     try {
       final viajeId = widget.viaje['id'];
       final url = Uri.parse(
-      //    'http://192.168.0.225/aplicacion_viajes/app_viajes/php/01_mapeo/cambiar_a_en_curso.php');
-      'http://181.47.100.96:8081/aplicacion_viajes/app_viajes/php/01_mapeo/cambiar_a_en_curso.php');
+          'http://181.47.100.96:8081/aplicacion_viajes/app_viajes/php/01_mapeo/cambiar_a_en_curso.php');
 
       final body = jsonEncode({
         'viaje_id': viajeId,
@@ -257,70 +254,7 @@ class _ViajeEnCursoPageState extends State<ViajeEnCursoPage> {
     }
   }
 
-  Future<void> _abrirWaze() async {
-    final String origen = widget.viaje['direccion_origen']?.toString() ?? '';
-
-    if (origen.isEmpty || origen == 'Sin origen') {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('⚠️ No hay dirección de origen disponible'),
-          backgroundColor: Colors.orange,
-          duration: Duration(seconds: 2),
-        ),
-      );
-      return;
-    }
-
-    final String origenLat = widget.viaje['origen_lat']?.toString() ?? '';
-    final String origenLng = widget.viaje['origen_lng']?.toString() ?? '';
-
-    try {
-      String url;
-
-      if (origenLat.isNotEmpty &&
-          origenLng.isNotEmpty &&
-          double.tryParse(origenLat) != 0.0 &&
-          double.tryParse(origenLng) != 0.0) {
-        final String wazeNative =
-            'waze://?ll=${origenLat},${origenLng}&navigate=yes';
-        final Uri wazeUri = Uri.parse(wazeNative);
-
-        if (await canLaunchUrl(wazeUri)) {
-          await launchUrl(wazeUri, mode: LaunchMode.externalApplication);
-          return;
-        }
-
-        url = 'https://waze.com/ul?ll=${origenLat},${origenLng}&navigate=yes';
-      } else {
-        final String direccionCodificada = Uri.encodeComponent(origen);
-
-        final String wazeNative =
-            'waze://?q=${direccionCodificada}&navigate=yes';
-        final Uri wazeUri = Uri.parse(wazeNative);
-
-        if (await canLaunchUrl(wazeUri)) {
-          await launchUrl(wazeUri, mode: LaunchMode.externalApplication);
-          return;
-        }
-
-        url = 'https://waze.com/ul?q=${direccionCodificada}&navigate=yes';
-      }
-
-      final Uri uri = Uri.parse(url);
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-      } else {
-        final String webUrl =
-            'https://www.waze.com/ul?q=${Uri.encodeComponent(origen)}';
-        if (await canLaunchUrl(Uri.parse(webUrl))) {
-          await launchUrl(Uri.parse(webUrl),
-              mode: LaunchMode.externalApplication);
-        }
-      }
-    } catch (e) {
-      if (kDebugMode) print('Error abriendo Waze: $e');
-    }
-  }
+  // ❌ ELIMINADA la función _abrirWaze() porque ya no se usa
 
   Future<void> _abrirGoogleMaps() async {
     final String origen = widget.viaje['direccion_origen']?.toString() ?? '';
@@ -853,30 +787,8 @@ class _ViajeEnCursoPageState extends State<ViajeEnCursoPage> {
                     ],
                   ),
                   const SizedBox(height: 8),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: _abrirWaze,
-                      icon: const Icon(Icons.navigation,
-                          size: 20, color: Colors.white),
-                      label: const Text(
-                        'Navegar con Waze',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF33CCFF),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 10),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 6),
+                  // ❌ ELIMINADO el botón de Waze
+                  // Solo se muestra el botón de Google Maps
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
@@ -904,7 +816,6 @@ class _ViajeEnCursoPageState extends State<ViajeEnCursoPage> {
               ),
             ),
           const Spacer(),
-          // En viaje_en_curso.dart - Botón principal
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: SizedBox(
@@ -915,7 +826,6 @@ class _ViajeEnCursoPageState extends State<ViajeEnCursoPage> {
                     ? null
                     : _enCurso
                         ? () async {
-                            // 🔴 Si ya está en curso, abrir finalización
                             final resultado = await Navigator.push<bool>(
                               context,
                               MaterialPageRoute(
@@ -931,7 +841,6 @@ class _ViajeEnCursoPageState extends State<ViajeEnCursoPage> {
                             }
                           }
                         : () async {
-                            // 🔴 Si NO está en curso, cambiar a "En Curso"
                             final exito = await _cambiarAEnCurso();
                             if (exito) {
                               ScaffoldMessenger.of(context).showSnackBar(

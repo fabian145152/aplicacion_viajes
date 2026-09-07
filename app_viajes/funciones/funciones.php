@@ -498,7 +498,14 @@ function guardarVehiculo($data)
                 'tipo' => $tipo,
                 'id_chofer' => $id_chofer
             ];
-            registrarAuditoria('vehiculos', $data['id'], 'U', $datos_anteriores, $datos_nuevos);
+            registrarAuditoria(
+                $_SESSION['id_usuario'],
+                'vehiculos',
+                'U',
+                $data['id'],
+                $datos_anteriores,
+                $datos_nuevos
+            );
         }
         return $resultado;
     } else {
@@ -530,7 +537,14 @@ function guardarVehiculo($data)
                 'tipo' => $tipo,
                 'id_chofer' => $id_chofer
             ];
-            registrarAuditoria('vehiculos', $nuevo_id, 'C', null, $datos_nuevos);
+            registrarAuditoria(
+                $_SESSION['id_usuario'],
+                'vehiculos',
+                'C',
+                $nuevo_id,
+                null,
+                $datos_nuevos
+            );
         }
         return $resultado;
     }
@@ -635,7 +649,14 @@ function guardarChofer($data)
                 'user' => $data['user'],
                 'clave' => $data['clave']
             ];
-            registrarAuditoria('choferes', $data['id'], 'U', $datos_anteriores, $datos_nuevos);
+            registrarAuditoria(
+                $_SESSION['id_usuario'],
+                'choferes',
+                'U',
+                $data['id'],
+                $datos_anteriores,
+                $datos_nuevos
+            );
         }
         return $resultado;
     } else {
@@ -670,7 +691,14 @@ function guardarChofer($data)
                 'user' => $data['user'],
                 'clave' => $data['clave']
             ];
-            registrarAuditoria('choferes', $nuevo_id, 'C', null, $datos_nuevos);
+            registrarAuditoria(
+                $_SESSION['id_usuario'],
+                'choferes',
+                'C',
+                $nuevo_id,
+                null,
+                $datos_nuevos
+            );
         }
         return $resultado;
     }
@@ -1059,19 +1087,42 @@ function obtenerRegistroParaAuditoria($tabla, $id, $campos = '*')
  * @param array  $datos_nuevos    Datos después del cambio (opcional)
  * @return bool
  */
-function registrarAuditoria($usuario_id, $tabla, $operacion, $id_registro, $datos_anteriores = null, $datos_nuevos = null)
-{
+
+
+function registrarAuditoria(
+    $usuario_id,
+    $tabla,
+    $operacion,
+    $id_registro,
+    $datos_anteriores = null,
+    $datos_nuevos = null
+) {
     $conn = conexion();
 
-    // Convertir arrays a JSON
-    $json_anteriores = $datos_anteriores ? json_encode($datos_anteriores, JSON_UNESCAPED_UNICODE) : null;
-    $json_nuevos = $datos_nuevos ? json_encode($datos_nuevos, JSON_UNESCAPED_UNICODE) : null;
+    // Convertir los datos anteriores a JSON
+    $json_anteriores = ($datos_anteriores !== null)
+        ? json_encode($datos_anteriores, JSON_UNESCAPED_UNICODE)
+        : null;
 
-    $sql = "INSERT INTO auditoria_general 
-            (usuario_id, tabla, operacion, id_registro, datos_anteriores, datos_nuevos) 
+    // Convertir los datos nuevos a JSON
+    $json_nuevos = ($datos_nuevos !== null)
+        ? json_encode($datos_nuevos, JSON_UNESCAPED_UNICODE)
+        : null;
+
+    // Insertar registro en auditoría
+    $sql = "INSERT INTO auditoria_general
+            (
+                usuario_id,
+                tabla,
+                operacion,
+                id_registro,
+                datos_anteriores,
+                datos_nuevos
+            )
             VALUES (?, ?, ?, ?, ?, ?)";
 
     $stmt = $conn->prepare($sql);
+
     return $stmt->execute([
         $usuario_id,
         $tabla,
@@ -1081,6 +1132,7 @@ function registrarAuditoria($usuario_id, $tabla, $operacion, $id_registro, $dato
         $json_nuevos
     ]);
 }
+
 
 /**
  * Obtener datos de una empresa por ID (para auditoría)

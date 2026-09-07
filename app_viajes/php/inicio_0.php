@@ -364,9 +364,9 @@ $nombre_completo = $row['nom_apellido'] ?? '';
             <div class="columna">
                 <div class="categoria"><i class="fas fa-truck"></i> Flota</div>
 
-                <a href="00_administracion/num_mov/lista_de_numeros.php" class="tarjeta">
-                    <i class="fas fa-list"></i>
-                    <span class="titulo">LISTADO DE MÓVILES</span>
+                <a href="00_administracion/choferes/listado_choferes.php" class="tarjeta">
+                    <i class="fas fa-user-tie"></i>
+                    <span class="titulo">CHOFERES</span>
                 </a>
 
                 <a href="00_administracion/trafico/listado.php" class="tarjeta">
@@ -374,11 +374,10 @@ $nombre_completo = $row['nom_apellido'] ?? '';
                     <span class="titulo">UNIDADES (TRÁFICO)</span>
                 </a>
 
-                <a href="00_administracion/choferes/listado_choferes.php" class="tarjeta">
-                    <i class="fas fa-user-tie"></i>
-                    <span class="titulo">CHOFERES</span>
+                <a href="00_administracion/num_mov/lista_de_numeros.php" class="tarjeta">
+                    <i class="fas fa-list"></i>
+                    <span class="titulo">LISTADO DE MÓVILES</span>
                 </a>
-
             </div>
 
             <!-- ===== COLUMNA: DESPACHO ===== -->
