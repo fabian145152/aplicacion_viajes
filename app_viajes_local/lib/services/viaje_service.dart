@@ -21,7 +21,6 @@ class ViajeService {
     }
   }
 
-  // En viaje_service.dart
   Future<List<dynamic>> obtenerViajesPendientes([String? movilId]) async {
     try {
       String urlFinal = viajesUrl;
@@ -30,8 +29,7 @@ class ViajeService {
       }
 
       final url = Uri.parse(urlFinal);
-      _log(
-          '📡 Obteniendo viajes${movilId != null ? " para móvil $movilId" : ""} desde: $url');
+      _log('📡 Obteniendo viajes desde: $url');
 
       final response = await http.get(url).timeout(const Duration(seconds: 10));
 
@@ -41,13 +39,10 @@ class ViajeService {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['res'] == 'OK') {
-          // 🔴 Verificar si hay un viaje activo
           if (data['tiene_viaje_activo'] == true) {
             _log('📋 Tiene viaje activo: ${data['viaje_activo']}');
-            // Si tiene viaje activo, retornar lista vacía (o el viaje activo)
             return [];
           }
-
           final viajes = data['viajes'] ?? [];
           _log('📋 Viajes encontrados: ${viajes.length}');
           return viajes;
@@ -64,16 +59,11 @@ class ViajeService {
   Future<bool> asignarViaje(int viajeId, String movilId) async {
     try {
       final url = Uri.parse(asignarUrl);
-
       final body = jsonEncode({
         'viaje_id': viajeId,
         'movil_id': movilId,
       });
-
       _log('📤 Asignando viaje $viajeId a móvil $movilId');
-      _log('📤 URL: $url');
-      _log('📤 Body: $body');
-
       final response = await http
           .post(
             url,
@@ -81,10 +71,8 @@ class ViajeService {
             body: body,
           )
           .timeout(const Duration(seconds: 10));
-
       _log('📥 Status: ${response.statusCode}');
       _log('📥 Respuesta: ${response.body}');
-
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['res'] == 'OK') {
@@ -105,16 +93,12 @@ class ViajeService {
   Future<bool> cambiarAEnCurso(int viajeId, String movilId) async {
     try {
       final url = Uri.parse(
-          //'http://192.168.0.225/aplicacion_viajes/app_viajes/php/01_mapeo/cambiar_a_en_curso.php');
-      'http://181.47.100.96:8081/aplicacion_viajes/app_viajes/php/01_mapeo/cambiar_a_en_curso.php');
-
+          'http://181.47.100.96:8081/aplicacion_viajes/app_viajes/php/01_mapeo/cambiar_a_en_curso.php');
       final body = jsonEncode({
         'viaje_id': viajeId,
         'movil_id': movilId,
       });
-
       _log('📤 Cambiando a En Curso: $body');
-
       final response = await http
           .post(
             url,
@@ -122,9 +106,7 @@ class ViajeService {
             body: body,
           )
           .timeout(const Duration(seconds: 10));
-
       _log('📥 Respuesta: ${response.body}');
-
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['res'] == 'OK') {
@@ -142,22 +124,31 @@ class ViajeService {
     }
   }
 
+  // 🔥 sendLocation con logs y viaje_id
   Future<bool> sendLocation(
-      String movilId, double lat, double lng, String status) async {
+      String movilId, double lat, double lng, String status,
+      {int? viajeId}) async {
     try {
       final url = Uri.parse(serverUrl);
 
-      Map<String, String> datosJson = {
+      Map<String, dynamic> datosJson = {
         'movil': movilId,
         'lat': lat.toString(),
         'lng': lng.toString(),
         'status': status,
       };
 
+      // 🔥 Si hay viajeId, lo agregamos al payload
+      if (viajeId != null) {
+        datosJson['viaje_id'] = viajeId.toString();
+      }
+
       final body = jsonEncode(datosJson);
 
-      print('🔴🔴🔴 URL: $url');
-      print('🔴🔴🔴 JSON A ENVIAR: $body');
+      // 🔴 LOG IMPORTANTE: Mostrar qué se está enviando
+      print('🔴🔴🔴 ENVIANDO A SERVIDOR:');
+      print('🔴 URL: $url');
+      print('🔴 JSON: $body');
 
       final response = await http
           .post(
@@ -167,7 +158,7 @@ class ViajeService {
           )
           .timeout(const Duration(seconds: 10));
 
-      print('🔴🔴🔴 RESPUESTA DEL SERVIDOR: ${response.body}');
+      print('🔴 RESPUESTA DEL SERVIDOR: ${response.body}');
 
       if (response.statusCode == 200) {
         return true;

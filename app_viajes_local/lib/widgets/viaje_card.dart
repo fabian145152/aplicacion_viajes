@@ -86,12 +86,24 @@ class ViajeCard extends StatelessWidget {
     final obsOperador =
         viaje['obs_operador']?.toString() ?? 'Sin observaciones';
     final obsPasaj = viaje['obs_pasaj']?.toString() ?? 'Sin observaciones';
+    final viajeId =
+        viaje['id']?.toString() ?? '?'; // 🔥 NUEVO: obtener ID del viaje
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('📋 Información del Viaje',
-            style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Row(
+          children: [
+            const Icon(Icons.info, color: Colors.blue),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                '📋 Información del Viaje #$viajeId', // 🔥 AÑADIR NÚMERO DE VIAJE
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        ),
         content: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

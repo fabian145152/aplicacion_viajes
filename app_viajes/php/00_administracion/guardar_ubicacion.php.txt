@@ -1,0 +1,62 @@
+<?php
+header('Content-Type: application/json');
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: POST');
+header('Access-Control-Allow-Headers: Content-Type');
+
+$host = 'localhost';
+$dbname = 'app_viajes';
+$username = 'root';
+$password = 'belgrado';
+
+try {
+    $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $username, $password);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+    $data = json_decode(file_get_contents('php://input'), true);
+    
+    if (!$data) {
+        echo json_encode(['res' => 'ERROR', 'msg' => 'Datos inválidos']);
+        exit;
+    }
+
+    $movil = $data['movil'] ?? '';
+    $deviceId = $data['device_id'] ?? '';
+    $estado = $data['estado'] ?? 'deslogueado';
+    $latitud = $data['latitud'] ?? '0';
+    $longitud = $data['longitud'] ?? '0';
+    $timestamp = $data['timestamp'] ?? date('Y-m-d H:i:s');
+    $nombreChofer = $data['nombre_chofer'] ?? '';
+
+    // Verificar si existe
+    $sqlCheck = "SELECT id FROM ubicaciones WHERE device_id = :device_id";
+    $stmtCheck = $pdo->prepare($sqlCheck);
+    $stmtCheck->execute([':device_id' => $deviceId]);
+    $existe = $stmtCheck->fetch();
+
+    if ($existe) {
+        $sql = "UPDATE ubicaciones 
+                SET movil = :movil, estado = :estado, lat = :latitud, lng = :longitud, 
+                    fecha = :timestamp, status = :estado
+                WHERE device_id = :device_id";
+    } else {
+        $sql = "INSERT INTO ubicaciones (movil, device_id, estado, lat, lng, fecha, status) 
+                VALUES (:movil, :device_id, :estado, :latitud, :longitud, :timestamp, :estado)";
+    }
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([
+        ':movil' => $movil,
+        ':device_id' => $deviceId,
+        ':estado' => $estado,
+        ':latitud' => $latitud,
+        ':longitud' => $longitud,
+        ':timestamp' => $timestamp,
+    ]);
+
+    echo json_encode(['res' => 'OK', 'msg' => 'Ubicación guardada']);
+
+} catch (PDOException $e) {
+    echo json_encode(['res' => 'ERROR', 'msg' => 'Error: ' . $e->getMessage()]);
+}
+?>

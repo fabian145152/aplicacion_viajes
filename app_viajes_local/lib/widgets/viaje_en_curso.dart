@@ -8,17 +8,20 @@ import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'finalizar_viaje.dart';
+import '../enums/estado_chofer.dart';
 
 class ViajeEnCursoPage extends StatefulWidget {
   final Map<String, dynamic> viaje;
   final VoidCallback? onViajeCancelado;
   final String numeroMovil;
+  final void Function(EstadoChofer) onEstadoCambiado;
 
   const ViajeEnCursoPage({
     super.key,
     required this.viaje,
     this.onViajeCancelado,
     required this.numeroMovil,
+    required this.onEstadoCambiado,
   });
 
   @override
@@ -49,6 +52,9 @@ class _ViajeEnCursoPageState extends State<ViajeEnCursoPage> {
   @override
   void initState() {
     super.initState();
+    // 🔥 Al abrir la pantalla, el viaje está asignado (ASIGNADO)
+    widget.onEstadoCambiado(EstadoChofer.asignado);
+
     _calcularRuta();
     _iniciarSeguimientoUbicacion();
     _iniciarVerificadorEstado();
@@ -76,6 +82,10 @@ class _ViajeEnCursoPageState extends State<ViajeEnCursoPage> {
           setState(() {
             _enCurso = estado == 'En Curso';
           });
+          // 🔥 Si ya está en curso, actualizar estado a EN CURSO
+          if (_enCurso) {
+            widget.onEstadoCambiado(EstadoChofer.enCurso);
+          }
         }
       }
     } catch (e) {
@@ -110,6 +120,8 @@ class _ViajeEnCursoPageState extends State<ViajeEnCursoPage> {
                 setState(() {
                   _viajeCancelado = true;
                 });
+                // 🔥 El viaje se desasignó -> notificar y volver a ACTIVO
+                widget.onEstadoCambiado(EstadoChofer.activo);
                 _mostrarMensajeCancelacion();
               }
             }
@@ -235,6 +247,8 @@ class _ViajeEnCursoPageState extends State<ViajeEnCursoPage> {
           setState(() {
             _enCurso = true;
           });
+          // 🔥 Cambiar estado a EN CURSO
+          widget.onEstadoCambiado(EstadoChofer.enCurso);
           return true;
         } else {
           if (kDebugMode) print('❌ Error: ${data['msg']}');
@@ -254,7 +268,7 @@ class _ViajeEnCursoPageState extends State<ViajeEnCursoPage> {
     }
   }
 
-  // ❌ ELIMINADA la función _abrirWaze() porque ya no se usa
+  // ❌ ELIMINADA la función _abrirWaze()
 
   Future<void> _abrirGoogleMaps() async {
     final String origen = widget.viaje['direccion_origen']?.toString() ?? '';
@@ -281,11 +295,11 @@ class _ViajeEnCursoPageState extends State<ViajeEnCursoPage> {
           double.tryParse(origenLat) != 0.0 &&
           double.tryParse(origenLng) != 0.0) {
         url =
-            'https://www.google.com/maps/dir/?api=1&destination=${origenLat},${origenLng}&travelmode=driving';
+            'https://www.google.com/maps/dir/?api=1&destination=$origenLat,$origenLng&travelmode=driving';
       } else {
         final String direccionCodificada = Uri.encodeComponent(origen);
         url =
-            'https://www.google.com/maps/dir/?api=1&destination=${direccionCodificada}&travelmode=driving';
+            'https://www.google.com/maps/dir/?api=1&destination=$direccionCodificada&travelmode=driving';
       }
 
       final Uri uri = Uri.parse(url);
@@ -568,6 +582,7 @@ class _ViajeEnCursoPageState extends State<ViajeEnCursoPage> {
       ),
       body: Column(
         children: [
+          // Card con información del viaje
           Padding(
             padding: const EdgeInsets.all(12.0),
             child: Card(
@@ -718,6 +733,8 @@ class _ViajeEnCursoPageState extends State<ViajeEnCursoPage> {
               ),
             ),
           ),
+
+          // Mapa
           Expanded(
             flex: 3,
             child: Container(
@@ -764,6 +781,8 @@ class _ViajeEnCursoPageState extends State<ViajeEnCursoPage> {
               ),
             ),
           ),
+
+          // Información de ruta y botón navegación
           if (!_cargandoRuta && !_errorRuta && _coordenadasRuta.isNotEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -787,8 +806,7 @@ class _ViajeEnCursoPageState extends State<ViajeEnCursoPage> {
                     ],
                   ),
                   const SizedBox(height: 8),
-                  // ❌ ELIMINADO el botón de Waze
-                  // Solo se muestra el botón de Google Maps
+                  // 🔥 Solo Google Maps (Waze eliminado)
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
@@ -815,7 +833,10 @@ class _ViajeEnCursoPageState extends State<ViajeEnCursoPage> {
                 ],
               ),
             ),
+
           const Spacer(),
+
+          // 🔥 Botón principal con lógica de estados
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: SizedBox(
@@ -826,6 +847,8 @@ class _ViajeEnCursoPageState extends State<ViajeEnCursoPage> {
                     ? null
                     : _enCurso
                         ? () async {
+                            // 🔥 Cierre de viaje -> CERRANDO
+                            widget.onEstadoCambiado(EstadoChofer.cerrando);
                             final resultado = await Navigator.push<bool>(
                               context,
                               MaterialPageRoute(
@@ -837,10 +860,16 @@ class _ViajeEnCursoPageState extends State<ViajeEnCursoPage> {
                             );
 
                             if (resultado == true) {
+                              // 🔥 Viaje completado -> ACTIVO
+                              widget.onEstadoCambiado(EstadoChofer.activo);
                               Navigator.pop(context, true);
+                            } else {
+                              // Si no se completó, volver a EN CURSO
+                              widget.onEstadoCambiado(EstadoChofer.enCurso);
                             }
                           }
                         : () async {
+                            // 🔥 Pasajero a bordo -> EN CURSO
                             final exito = await _cambiarAEnCurso();
                             if (exito) {
                               ScaffoldMessenger.of(context).showSnackBar(
@@ -901,6 +930,8 @@ class _ViajeEnCursoPageState extends State<ViajeEnCursoPage> {
       ),
     );
   }
+
+  // ---------- MÉTODOS AUXILIARES ----------
 
   Widget _infoRow(IconData icon, String label, String value) {
     return Row(

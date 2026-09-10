@@ -1,0 +1,22 @@
+# app_viajes
+EMPEZADO 5-4-26
+
+ADMINISTRACION
+        SOLO OPERADORES
+
+UNIDADES y CHOFERES 08-06-2026
+
+CUENTAS CORRIENTES
+        EMPRESAS
+        CENTRO DE COSTO
+        AUTORIZANTES
+
+TRABAJANDO CON LOS VIAJES
+        MAPA DE ORIGEN
+        MAPA DE DESTINO
+        MAPA DE RECORRIDO
+
+
+        # 00_viajes_pc
+# 00_viajes_pc
+# 01_app_viajes

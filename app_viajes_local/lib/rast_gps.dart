@@ -9,6 +9,7 @@ import 'login.dart';
 import 'services/viaje_service.dart';
 import 'widgets/viaje_card.dart';
 import 'widgets/viaje_en_curso.dart';
+import 'enums/estado_chofer.dart';
 
 class BotonCoordenadas extends StatefulWidget {
   final String numeroMovil;
@@ -33,20 +34,70 @@ class _BotonCoordenadasState extends State<BotonCoordenadas>
   List<dynamic> _viajesPendientes = [];
   bool _cargandoViajes = false;
 
+  EstadoChofer _estadoActual = EstadoChofer.inactivo;
+  int? _viajeActualId; // 🔥 ID del viaje actual
+
   late ViajeService _viajeService;
 
   final String _actualizarLoginUrl =
-      //"http://192.168.0.225/aplicacion_viajes/app_viajes/php/01_mapeo/actualizar_login.php";
-  "http://181.47.100.96:8081/aplicacion_viajes/app_viajes/php/01_mapeo/actualizar_login.php";
+      "http://181.47.100.96:8081/aplicacion_viajes/app_viajes/php/01_mapeo/actualizar_login.php";
 
   final String _actualizarActivoUrl =
-  //    "http://192.168.0.225/aplicacion_viajes/app_viajes/php/01_mapeo/actualizar_activo.php";
-  "http://181.47.100.96:8081/aplicacion_viajes/app_viajes/php/01_mapeo/actualizar_activo.php";
+      "http://181.47.100.96:8081/aplicacion_viajes/app_viajes/php/01_mapeo/actualizar_activo.php";
 
   void _log(String message) {
     if (kDebugMode) {
       debugPrint('[RastGPS] $message');
     }
+  }
+
+  String _getStatusString(EstadoChofer estado) {
+    switch (estado) {
+      case EstadoChofer.inactivo:
+        return 'INACTIVO';
+      case EstadoChofer.activo:
+        return 'ACTIVO';
+      case EstadoChofer.asignado:
+        return 'ASIGNADO';
+      case EstadoChofer.enCurso:
+        return 'A BORDO';
+      case EstadoChofer.cerrando:
+        return 'CERRANDO';
+    }
+  }
+
+  // 🔥 Actualiza estado y envía ubicación con el viaje_id actual
+  void actualizarEstado(EstadoChofer nuevoEstado) {
+    if (_estadoActual != nuevoEstado) {
+      _estadoActual = nuevoEstado;
+      _log('🔄 Estado actualizado a: ${_getStatusString(_estadoActual)}');
+      // Enviar ubicación inmediatamente
+      _sendLocation();
+      // Reiniciar timer con el nuevo intervalo
+      _reiniciarTimer();
+    }
+  }
+
+  Duration _getIntervalForEstado(EstadoChofer estado) {
+    switch (estado) {
+      case EstadoChofer.activo:
+        return const Duration(seconds: 30);
+      case EstadoChofer.asignado:
+      case EstadoChofer.enCurso:
+      case EstadoChofer.cerrando:
+        return const Duration(seconds: 10);
+      case EstadoChofer.inactivo:
+        return const Duration(seconds: 30);
+    }
+  }
+
+  void _reiniciarTimer() {
+    _timer?.cancel();
+    if (!_isActive) return;
+    final intervalo = _getIntervalForEstado(_estadoActual);
+    _log(
+        '🔄 Reiniciando timer con intervalo: ${intervalo.inSeconds}s para estado: ${_getStatusString(_estadoActual)}');
+    _timer = Timer.periodic(intervalo, (_) => _sendLocation());
   }
 
   Future<void> _actualizarEstadoActivo(int activo) async {
@@ -95,14 +146,10 @@ class _BotonCoordenadasState extends State<BotonCoordenadas>
 
     _viajeService = ViajeService(
       viajesUrl:
-         // 'http://192.168.0.225/aplicacion_viajes/app_viajes/php/01_mapeo/obtener_viajes_pendientes.php',
-'http://181.47.100.96:8081/aplicacion_viajes/app_viajes/php/01_mapeo/obtener_viajes_pendientes.php',
-
+          'http://181.47.100.96:8081/aplicacion_viajes/app_viajes/php/01_mapeo/obtener_viajes_pendientes.php',
       asignarUrl:
-      //    'http://192.168.0.225/aplicacion_viajes/app_viajes/php/01_mapeo/asignar_viaje.php',
           'http://181.47.100.96:8081/aplicacion_viajes/app_viajes/php/01_mapeo/asignar_viaje.php',
       serverUrl:
-       //   'http://192.168.0.225/aplicacion_viajes/app_viajes/php/01_mapeo/recibir.php',
           'http://181.47.100.96:8081/aplicacion_viajes/app_viajes/php/01_mapeo/recibir.php',
     );
 
@@ -138,7 +185,9 @@ class _BotonCoordenadasState extends State<BotonCoordenadas>
     _viajesTimer?.cancel();
 
     if (_isActive) {
-      await _sendStatusMultipleTimes('inactivo');
+      _viajeActualId = null;
+      actualizarEstado(EstadoChofer.inactivo);
+      await _sendStatusMultipleTimes();
       await _actualizarEstadoActivo(0);
     }
 
@@ -271,8 +320,12 @@ class _BotonCoordenadasState extends State<BotonCoordenadas>
       return;
     }
 
-    // 🔴 Ya no llamamos a asignarViaje() porque el viaje ya está asignado desde el panel web
-    // Simplemente navegamos a la pantalla de viaje en curso
+    // 🔥 Guardamos el ID del viaje actual
+    _viajeActualId = idNumerico;
+    _log('📌 Viaje actual ID establecido: $_viajeActualId');
+
+    // 🔥 Cambiar estado a ASIGNADO
+    actualizarEstado(EstadoChofer.asignado);
 
     if (mounted) {
       final resultado = await Navigator.push<bool>(
@@ -282,14 +335,39 @@ class _BotonCoordenadasState extends State<BotonCoordenadas>
             viaje: viaje,
             numeroMovil: widget.numeroMovil,
             onViajeCancelado: () {
+              // 🔥 Viaje cancelado desde el servidor
+              _log('❌ Viaje cancelado desde servidor');
+              _viajeActualId = null;
+              if (_isActive) {
+                actualizarEstado(EstadoChofer.activo);
+              } else {
+                actualizarEstado(EstadoChofer.inactivo);
+              }
               _obtenerViajesPendientes();
             },
+            onEstadoCambiado: actualizarEstado,
           ),
         ),
       );
 
       if (resultado == true) {
+        // 🔥 Viaje finalizado correctamente
+        _log('✅ Viaje finalizado correctamente');
+        _viajeActualId = null;
+        if (_isActive) {
+          actualizarEstado(EstadoChofer.activo);
+        } else {
+          actualizarEstado(EstadoChofer.inactivo);
+        }
         _obtenerViajesPendientes();
+      } else if (resultado == false) {
+        _log('⚠️ Viaje cerrado sin finalizar');
+        _viajeActualId = null;
+        if (_isActive) {
+          actualizarEstado(EstadoChofer.activo);
+        } else {
+          actualizarEstado(EstadoChofer.inactivo);
+        }
       }
     }
 
@@ -304,7 +382,8 @@ class _BotonCoordenadasState extends State<BotonCoordenadas>
         duration: const Duration(seconds: 3)));
   }
 
-  Future<void> _sendLocation(String status) async {
+  // 🔥 _sendLocation ahora incluye logs y viaje_id
+  Future<void> _sendLocation() async {
     if (_isSending) return;
     _isSending = true;
     try {
@@ -317,8 +396,16 @@ class _BotonCoordenadasState extends State<BotonCoordenadas>
       final position = await Geolocator.getCurrentPosition(
               desiredAccuracy: LocationAccuracy.high)
           .timeout(const Duration(seconds: 10));
+
+      String statusStr = _getStatusString(_estadoActual);
+
+      // 🔥 LOG para ver qué viaje_id se está enviando
+      print(
+          '🔴🔴🔴 ENVIANDO UBICACIÓN - viaje_id: $_viajeActualId, estado: $statusStr');
+
       await _viajeService.sendLocation(
-          widget.numeroMovil, position.latitude, position.longitude, status);
+          widget.numeroMovil, position.latitude, position.longitude, statusStr,
+          viajeId: _viajeActualId);
     } catch (e) {
       _log('❌ Error al enviar ubicación: $e');
     } finally {
@@ -326,9 +413,10 @@ class _BotonCoordenadasState extends State<BotonCoordenadas>
     }
   }
 
-  Future<void> _sendStatusMultipleTimes(String status) async {
-    for (int i = 1; i <= 3; i++) {
-      await _sendLocation(status);
+  Future<void> _sendStatusMultipleTimes() async {
+    for (int i = 1; i <= 1; i++) {
+      //En esta linea ajusto la cantidad de veces que manda la ubicacion, si quiero que mande 3 veces pongo 3
+      await _sendLocation();
       await Future.delayed(const Duration(milliseconds: 500));
     }
   }
@@ -336,9 +424,9 @@ class _BotonCoordenadasState extends State<BotonCoordenadas>
   void _toggleTracking(bool active) async {
     if (active) {
       await _actualizarEstadoActivo(1);
-      await _sendStatusMultipleTimes('activo');
-      _timer = Timer.periodic(
-          const Duration(seconds: 5), (_) => _sendLocation('activo'));
+      _viajeActualId = null;
+      actualizarEstado(EstadoChofer.activo);
+      await _sendStatusMultipleTimes();
       _viajesTimer = Timer.periodic(
           const Duration(seconds: 10), (_) => _obtenerViajesPendientes());
       _obtenerViajesPendientes();
@@ -346,7 +434,9 @@ class _BotonCoordenadasState extends State<BotonCoordenadas>
       _timer?.cancel();
       _viajesTimer?.cancel();
       await _actualizarEstadoActivo(0);
-      await _sendStatusMultipleTimes('inactivo');
+      _viajeActualId = null;
+      actualizarEstado(EstadoChofer.inactivo);
+      await _sendStatusMultipleTimes();
       if (mounted) setState(() => _viajesPendientes = []);
     }
   }

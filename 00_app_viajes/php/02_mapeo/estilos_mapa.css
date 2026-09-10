@@ -1,0 +1,75 @@
+ body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f7f6;
+        }
+        .container {
+            max-width: 1100px;
+            margin: auto;
+        }
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 15px;
+            border-radius: 8px 8px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        #map {
+            height: 650px;
+            width: 100%;
+            border: 2px solid #2c3e50;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .info-panel {
+            background: white;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            font-size: 14px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            display: flex;
+            gap: 20px;
+        }
+        .status-pill {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            color: white;
+            text-transform: uppercase;
+            font-size: 11px;
+        }
+
+        /* COLORES POR ESTADO */
+        .activo { background: #27ae60; }
+        .inactivo { background: #e74c3c; }
+        .detenido { background: #f1c40f; color: #000; }
+
+        /* Tooltip dinámico */
+        .tooltip-activo {
+            background-color: #27ae60;
+            border: 2px solid #27ae60;
+            color: white;
+        }
+        .tooltip-inactivo {
+            background-color: #e74c3c;
+            border: 2px solid #e74c3c;
+            color: white;
+        }
+        .tooltip-detenido {
+            background-color: #f1c40f;
+            border: 2px solid #f1c40f;
+            color: black;
+        }
+
+        .leaflet-tooltip {
+            border-radius: 5px;
+            padding: 3px 10px;
+            font-weight: bold;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            font-size: 13px;
+        }
