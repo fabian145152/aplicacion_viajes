@@ -1,0 +1,32 @@
+ir a:
+android/app/src/main/AndroidManifest.xml
+
+en la linea 6 cambio en nombre que va a aparecer en el celu cuando cargo la app
+
+conecto el celu con VISOR
+
+abro un terminal y escribo
+flutter devices.
+y me tiene que aparecer el celular que tengo cenectado
+
+cargar apk en telefono:
+flutter clean		//limpia el proyecto
+flutter pub get		//Carga todas las dependencias 
+flutter run		//Carga todo en el celular
+flutter r		//Actualiza los cambios. Mientras no se cierre la 
+			  conexion con el telefono.
+
+
+
+la apk para instalar hay que crearla
+flutter build apk --debug     //version de prueba
+
+flutter build apk --release   //es la version de produccion
+ y se ubica en:
+[tu_proyecto]/build/app/outputs/flutter-apk/app-release.apk
+
+API mapas en el celu:
+https://www.thunderforest.com/
+user: laboratorio.fabian@gmail.com
+pass: 00145152
+

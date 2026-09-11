@@ -20,33 +20,43 @@ if (!$conn) {
 $jsonCrudo = file_get_contents("php://input");
 $datos = json_decode($jsonCrudo, true);
 
-// 🔴 LOG: Mostrar qué llega al servidor
 error_log("📥 JSON recibido: " . $jsonCrudo);
 
-// Validar que el JSON llegó bien
 if (!$datos) {
     echo json_encode(["res" => "ERROR", "msg" => "JSON vacío o inválido"]);
     exit;
 }
 
-// Extraer los datos del celular
+// Extraer datos del celular
 $lat = $datos['lat'] ?? null;
 $lng = $datos['lng'] ?? null;
 $movil = $datos['movil'] ?? '';
 $status = $datos['status'] ?? 'activo';
-$viaje_id = $datos['viaje_id'] ?? 0;  // 🔥 default 0
+$viaje_id = $datos['viaje_id'] ?? 0;
 
-// 🔥 NUEVO: device_id puede venir o no desde la app
-$device_id = $datos['device_id'] ?? $movil; // Si no viene, usar el móvil
-
-// Validar que haya coordenadas
+// Validar
 if ($lat === null || $lng === null) {
     echo json_encode(["res" => "ERROR", "msg" => "Faltan coordenadas"]);
     exit;
 }
 
+// 🔥 REGLA DE NEGOCIO: Forzar viaje_id = 0 en ciertos estados
+// CERRANDO, ASIGNADO y A BORDO respetan el viaje_id que envía la app
+$status_upper = strtoupper($status);
+
+$estados_sin_viaje = ['ACTIVO', 'INACTIVO', 'DESLOGUEADO', 'LOGUEADO'];
+
+if (in_array($status_upper, $estados_sin_viaje)) {
+    // 🔥 En estos estados NO debe haber viaje asignado
+    $viaje_id = 0;
+    error_log("🧹 Servidor forzó viaje_id = 0 (estado: $status)");
+} else {
+    // ASIGNADO, A BORDO, CERRANDO → mantener el viaje_id que envía la app
+    $viaje_id = intval($viaje_id);
+    error_log("🚕 Respetando viaje_id = $viaje_id (estado: $status)");
+}
+
 try {
-    // 🔥 Siempre incluimos viaje_id (con default 0)
     $sql = "INSERT INTO ubicaciones (lat, lng, movil, device_id, status, viaje_id) 
             VALUES (:lat, :lng, :movil, :device_id, :status, :viaje_id)";
     
@@ -56,34 +66,29 @@ try {
         throw new Exception("Error al preparar la consulta SQL");
     }
 
-    // Vincular parámetros correctamente
     $stmt->bindParam(':lat', $lat);
     $stmt->bindParam(':lng', $lng);
     $stmt->bindParam(':movil', $movil);
-    $stmt->bindParam(':device_id', $device_id);  // 🔥 AHORA ES EL DEVICE_ID REAL
+    $stmt->bindParam(':device_id', $status);
     $stmt->bindParam(':status', $status);
-    
-    // 🔥 viaje_id siempre con valor (0 si no hay)
-    $viaje_id_num = intval($viaje_id);
-    $stmt->bindParam(':viaje_id', $viaje_id_num, PDO::PARAM_INT);
+    $stmt->bindParam(':viaje_id', $viaje_id, PDO::PARAM_INT);
 
-    error_log("🟢 Insertando - movil: $movil | status: $status | viaje_id: $viaje_id_num | device_id: $device_id");
+    error_log("🟢 Insertando - movil: $movil | status: $status | viaje_id: $viaje_id");
 
     $resultado = $stmt->execute();
 
     if ($resultado) {
         echo json_encode([
             "res" => "OK", 
-            "msg" => "Coordenadas guardadas correctamente",
-            "movil" => $movil,
-            "status" => $status,
-            "viaje_id" => $viaje_id_num
+            "msg" => "Coordenadas guardadas",
+            "viaje_id_guardado" => $viaje_id,
+            "status" => $status
         ]);
     } else {
-        echo json_encode(["res" => "ERROR", "msg" => "Error al ejecutar la inserción"]);
+        echo json_encode(["res" => "ERROR", "msg" => "Error al insertar"]);
     }
 } catch (Exception $e) {
-    error_log("❌ Excepción en recibir.php: " . $e->getMessage());
+    error_log("❌ Excepción: " . $e->getMessage());
     echo json_encode(["res" => "ERROR", "msg" => "Excepción: " . $e->getMessage()]);
 }
 ?>
