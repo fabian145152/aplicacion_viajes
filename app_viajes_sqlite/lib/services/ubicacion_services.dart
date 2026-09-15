@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:geolocator/geolocator.dart';
 import 'package:device_info_plus/device_info_plus.dart';
-import 'package:permission_handler/permission_handler.dart';
 import '../database/ubicacion_dao.dart';
 import '../models/ubicacion_model.dart';
 import 'sync_services.dart';

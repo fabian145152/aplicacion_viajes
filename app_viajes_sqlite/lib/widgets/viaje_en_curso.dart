@@ -455,7 +455,7 @@ class _ViajeEnCursoPageState extends State<ViajeEnCursoPage> {
   Future<Map<String, dynamic>?> _geocodificar(String direccion) async {
     try {
       final url = Uri.parse(
-          'https://nominatim.openstreetmap.org/search?format=json&q=${Uri.encodeComponent(direccion + ', Buenos Aires, Argentina')}&limit=1');
+          'https://nominatim.openstreetmap.org/search?format=json&q=${Uri.encodeComponent('$direccion, Buenos Aires, Argentina')}&limit=1');
       final response = await http.get(url).timeout(const Duration(seconds: 5));
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -643,7 +643,8 @@ class _ViajeEnCursoPageState extends State<ViajeEnCursoPage> {
                         padding: const EdgeInsets.only(top: 8),
                         child: Row(
                           children: [
-                            Icon(Icons.warning, color: Colors.orange, size: 16),
+                            const Icon(Icons.warning,
+                                color: Colors.orange, size: 16),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
@@ -662,7 +663,7 @@ class _ViajeEnCursoPageState extends State<ViajeEnCursoPage> {
                         padding: const EdgeInsets.only(top: 4),
                         child: Row(
                           children: [
-                            Icon(Icons.gps_fixed,
+                            const Icon(Icons.gps_fixed,
                                 color: Colors.green, size: 14),
                             const SizedBox(width: 8),
                             Text(

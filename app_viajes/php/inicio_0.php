@@ -339,10 +339,7 @@ $nombre_completo = $row['nom_apellido'] ?? '';
                     <span class="titulo">AJUSTE DIFERIDOS</span>
                 </a>
 
-                <a href="../php/contaduria/lista_viajes_completa.php" class="tarjeta">
-                    <i class="fas fa-file-invoice"></i>
-                    <span class="titulo">DETALLE DE VIAJES</span>
-                </a>
+
 
                 <a href="00_administracion/cuentas_empresas/listado_empresas.php" class="tarjeta">
                     <i class="fas fa-building"></i>
@@ -354,10 +351,16 @@ $nombre_completo = $row['nom_apellido'] ?? '';
                     <span class="titulo">AUDITORÍA <span class="badge-nuevo">Nuevo</span></span>
                 </a>
 
-                <a href="00_administracion/menu_admin.php" class="tarjeta">
-                    <i class="fas fa-tools"></i>
-                    <span class="titulo">ADMINISTRACIÓN</span>
-                </a>
+
+                <a href="" class="tarjeta">
+                    <i class="fas fa-users-cog"></i>
+                    <span class="titulo">RANGOS</span>
+
+                    <a href="" class="tarjeta">
+                        <i class="fas fa-user-shield"></i>
+                        <span class="titulo">APLICACION DE PASAJEROS</span>
+                    </a>
+
             </div>
 
             <!-- ===== COLUMNA: FLOTA ===== -->
@@ -371,7 +374,7 @@ $nombre_completo = $row['nom_apellido'] ?? '';
 
                 <a href="00_administracion/trafico/listado.php" class="tarjeta">
                     <i class="fas fa-car-side"></i>
-                    <span class="titulo">UNIDADES (TRÁFICO)</span>
+                    <span class="titulo">UNIDADES</span>
                 </a>
 
                 <a href="00_administracion/choferes/listado_choferes.php" class="tarjeta">
@@ -394,6 +397,11 @@ $nombre_completo = $row['nom_apellido'] ?? '';
                 <a href="00_administracion/despacho_viajes/lista_viajes.php" target="_blank" class="tarjeta">
                     <i class="fas fa-table"></i>
                     <span class="titulo">LISTADO DE VIAJES</span>
+                    <span class="link-externo">🔗</span>
+                </a>
+                <a href="../php/contaduria/lista_viajes_completa.php" class="tarjeta">
+                    <i class="fas fa-file-invoice"></i>
+                    <span class="titulo">DETALLE DE VIAJES</span>
                     <span class="link-externo">🔗</span>
                 </a>
             </div>
@@ -419,17 +427,33 @@ $nombre_completo = $row['nom_apellido'] ?? '';
                     <span class="titulo">RECORRIDOS</span>
                     <span class="link-externo">🔗</span>
                 </a>
+
+                <a href="01_mapeo/recorridos/ver_rutas.php" target="_blank" class="tarjeta">
+                    <i class="fas fa-road"></i>
+                    <span class="titulo">RECORRIDOS DE LOS VIAJES</span>
+                    <span class="link-externo">🔗</span>
+                </a>
+
+
             </div>
 
             <!-- ===== COLUMNA: UTILIDADES ===== -->
             <div class="columna">
                 <div class="categoria"><i class="fas fa-toolbox"></i> Utilidades</div>
 
-                <a href="../backup.php" target="_blank" class="tarjeta">
+                <a href="00_administracion/backup/backup_descarga.php" target="_blank" class="tarjeta">
                     <i class="fas fa-database"></i>
                     <span class="titulo">BACKUP</span>
                     <span class="link-externo">🔗</span>
                 </a>
+
+                <a href="00_administracion/backup/listar_backups.php" class="tarjeta">
+                    <i class="fas fa-folder-open"></i>
+                    <span class="titulo">VER BACKUPS</span>
+                    <span class="link-externo">🔗</span>
+
+                </a>
+
 
                 <a href="01_mapeo/recibir.php" target="_blank" class="tarjeta">
                     <i class="fas fa-arrow-down"></i>
