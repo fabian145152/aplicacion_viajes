@@ -30,5 +30,17 @@ if (!$resultado) {
 // Formatear fecha
 $resultado['fecha_hora'] = date('d/m/Y H:i:s', strtotime($resultado['fecha_hora']));
 
+// ============================================================
+// URL AL MAPA DE RECORRIDO (NUEVO)
+// ============================================================
+$resultado['url_recorrido'] = null;
+
+$tabla_audit = $resultado['tabla'];
+$id_registro = (int)$resultado['id_registro'];
+
+if ($tabla_audit === 'viajes_despacho' && $id_registro > 0) {
+    $resultado['url_recorrido'] = '../../01_mapeo/mapa_ubicaciones_viaje.php?id=' . $id_registro;
+}
+
 echo json_encode($resultado);
 ?>

@@ -965,14 +965,23 @@ $operaciones_map = [
             border-radius: 3px;
         }
 
-        .leyenda-cambios {
-            margin-top: 10px;
-            padding: 8px 12px;
-            background: #fff3cd;
-            border: 1px solid #ffc107;
-            border-radius: 4px;
-            font-size: 12px;
-            color: #000;
+        .btn-ver-recorrido {
+            display: inline-block;
+            padding: 11px 24px;
+            background: linear-gradient(135deg, #17a2b8, #138496);
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 6px rgba(23, 162, 184, 0.25);
+        }
+
+        .btn-ver-recorrido:hover {
+            background: linear-gradient(135deg, #138496, #0f6674);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(23, 162, 184, 0.4);
         }
     </style>
 </head>
@@ -1312,6 +1321,13 @@ $operaciones_map = [
                 <div class="detalle-item" style="flex-direction:column; align-items:flex-start;">
                     <span class="label" style="width:100%;">📄 Datos Nuevos:</span>
                     <div class="detalle-json" id="detalle-nuevos">-</div>
+                </div>
+
+                <!-- BOTÓN VER RECORRIDO -->
+                <div id="detalle-acciones" style="display:none; margin-top:18px; padding-top:15px; border-top:2px solid #dee2e6; text-align:center;">
+                    <a id="btn-ver-recorrido" href="#" target="_blank" class="btn-ver-recorrido">
+                        🗺️ Ver recorrido del viaje en el mapa
+                    </a>
                 </div>
             </div>
         </div>
@@ -1684,10 +1700,35 @@ $operaciones_map = [
                         document.getElementById('detalle-nuevos').textContent = '-';
                     }
 
+                    // ===== MOSTRAR / OCULTAR BOTÓN DE RECORRIDO =====
+                    const accionesDiv = document.getElementById('detalle-acciones');
+                    const btnRecorrido = document.getElementById('btn-ver-recorrido');
+                    if (data.url_recorrido) {
+                        btnRecorrido.href = data.url_recorrido;
+                        accionesDiv.style.display = 'block';
+                    } else {
+                        accionesDiv.style.display = 'none';
+                        btnRecorrido.href = '#';
+                    }
+
                     document.getElementById('modalDetalle').style.display = 'block';
                     document.body.style.overflow = 'hidden';
                 })
                 .catch(error => {
+
+
+                    /*
+                   
+                    document.getElementById('modalDetalle').style.display = 'block';
+                    document.body.style.overflow = 'hidden';
+                })
+                .catch(error => {
+
+*/
+
+
+
+
                     console.error('Error:', error);
                     alert('Error al cargar el detalle');
                 });

@@ -11,6 +11,8 @@ import 'services/ubicacion_services.dart'; // 🔥 Servicio con SQLite
 import 'widgets/viaje_card.dart';
 import 'widgets/viaje_en_curso.dart';
 import 'enums/estado_chofer.dart';
+import 'services/heartbeat_service.dart';
+import 'package:audioplayers/audioplayers.dart';
 
 class BotonCoordenadas extends StatefulWidget {
   final String numeroMovil;
@@ -36,6 +38,9 @@ class _BotonCoordenadasState extends State<BotonCoordenadas>
   EstadoChofer _estadoActual = EstadoChofer.inactivo;
   int? _viajeActualId;
 
+  final AudioPlayer _audioPlayer = AudioPlayer();
+  int _cantidadViajesAnterior = 0;
+
   late ViajeService _viajeService;
   final UbicacionService _ubicacionService = UbicacionService(); // 🔥 NUEVO
 
@@ -48,6 +53,16 @@ class _BotonCoordenadasState extends State<BotonCoordenadas>
   void _log(String message) {
     if (kDebugMode) {
       debugPrint('[RastGPS] $message');
+    }
+  }
+
+  Future<void> _reproducirCampana() async {
+    try {
+      await _audioPlayer.stop();
+      await _audioPlayer.play(AssetSource('sonido/campana.mp3'));
+      _log('🔔 Campana sonando');
+    } catch (e) {
+      _log('❌ Error al reproducir campana: $e');
     }
   }
 
@@ -149,9 +164,9 @@ class _BotonCoordenadasState extends State<BotonCoordenadas>
     WidgetsBinding.instance.removeObserver(this);
     _welcomeTimer?.cancel();
     _viajesTimer?.cancel();
-    // 🔥 Detener el servicio (envía estado deslogueado)
     _ubicacionService.detener();
     WakelockPlus.disable();
+    _audioPlayer.dispose(); // ← AGREGAR ESTA LÍNEA
     super.dispose();
   }
 
@@ -172,6 +187,10 @@ class _BotonCoordenadasState extends State<BotonCoordenadas>
 
     // 🔥 Detener el servicio (envía estado deslogueado automáticamente)
     _ubicacionService.detener();
+
+    // 🔥 DETENER EL LATIDO (NUEVO)
+    HeartbeatService.instancia.detener();
+    _log('💓 Latido detenido');
 
     if (_isActive) {
       _viajeActualId = null;
@@ -270,6 +289,20 @@ class _BotonCoordenadasState extends State<BotonCoordenadas>
     try {
       final viajes =
           await _viajeService.obtenerViajesPendientes(widget.numeroMovil);
+
+      // 🔔 Detectar si llegaron viajes NUEVOS
+      final cantidadNueva = viajes.length;
+      if (cantidadNueva > _cantidadViajesAnterior &&
+          _cantidadViajesAnterior >= 0) {
+        // Es la primera carga? (anterior = 0 y había 0 viajes) → no suena
+        // Si ya había 0 y ahora hay 1+ → suena
+        // Si había 2 y ahora hay 3 → suena
+        if (!(_cantidadViajesAnterior == 0 && cantidadNueva == 0)) {
+          await _reproducirCampana();
+        }
+      }
+      _cantidadViajesAnterior = cantidadNueva;
+
       if (mounted) setState(() => _viajesPendientes = viajes);
     } catch (e) {
       _log('❌ ERROR en _obtenerViajesPendientes: $e');

@@ -6,6 +6,7 @@ import 'dart:io';
 import 'dart:async';
 import 'rast_gps.dart';
 import 'services/ubicacion_services.dart';
+import 'services/heartbeat_service.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -119,6 +120,10 @@ class _LoginPageState extends State<LoginPage> {
             _log('📱 Móvil: $movil');
 
             await _actualizarEstadoLogin(movil, 1);
+
+// 🔥 ARRANCAR EL LATIDO (nuevo)
+            HeartbeatService.instancia.iniciar(int.parse(movil));
+            _log('💓 Latido iniciado para móvil $movil');
 
             if (!mounted) return;
 

@@ -9,7 +9,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  geolocator: ^10.0.0
+  flutter_foreground_task: ^8.0.0
+  geolocator: ^12.0.0  
   permission_handler: ^11.0.0 
   device_info_plus: ^10.0.0        # 🔥 ESTA FALTA
   wakelock_plus: ^1.1.0
@@ -22,6 +23,7 @@ dependencies:
   path: ^1.8.0
   path_provider: ^2.1.0
   flutter_launcher_icons: ^0.14.4
+  audioplayers: ^6.0.0
 
 dev_dependencies:
   flutter_launcher_icons: ^0.14.4
@@ -31,8 +33,14 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/icon/app_icon.png
+    - assets/sonido/campana.mp3
 
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/icon/app_icon.png"  
+  image_path: "assets/icon/app_icon.png"
+  # Opcional: ícono adaptativo de Android 8+
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/icon/app_icon.png"

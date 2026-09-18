@@ -571,6 +571,7 @@ function borrarVehiculo($id)
 function obtenerChoferes()
 {
     $pdo = conexion();
+    limpiar_choferes_inactivos($pdo);  // <-- ESTA LÍNEA NUEVA
     $sql = "SELECT c.*, v.patente, v.marca, v.modelo
             FROM choferes c
             LEFT JOIN vehiculos v ON c.id = v.id_chofer
@@ -1165,4 +1166,25 @@ function obtenerAutorizanteParaAuditoria($id)
     $stmt = $conn->prepare("SELECT * FROM autorizantes WHERE id = ?");
     $stmt->execute([$id]);
     return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
+//-------------------------------------
+//     LIMPIAR CHOFERES INACTIVOS
+//-------------------------------------
+
+function limpiar_choferes_inactivos($pdo = null, $segundos = 90)
+{
+    if ($pdo === null) {
+        $pdo = conexion();
+    }
+
+    $sql = "UPDATE choferes 
+            SET logeado = 0, activo = 0 
+            WHERE (logeado = 1 OR activo = 1)
+              AND (ultima_actividad IS NULL 
+                   OR ultima_actividad < DATE_SUB(NOW(), INTERVAL :segundos SECOND))";
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->bindValue(':segundos', (int)$segundos, PDO::PARAM_INT);
+    $stmt->execute();
 }

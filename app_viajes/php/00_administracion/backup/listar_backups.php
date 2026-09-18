@@ -95,6 +95,31 @@ usort($archivos, function ($a, $b) {
         .btn.azul:hover {
             background: #0056b3;
         }
+
+        /* ===== BOTÓN DESCARGAR ===== */
+        .btn-descargar {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            background: #28a745;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: 600;
+            transition: background .2s, transform .1s;
+            white-space: nowrap;
+        }
+
+        .btn-descargar:hover {
+            background: #218838;
+            transform: translateY(-1px);
+        }
+
+        .btn-descargar:active {
+            transform: translateY(0);
+        }
     </style>
 </head>
 
@@ -112,6 +137,7 @@ usort($archivos, function ($a, $b) {
                     <th>Archivo</th>
                     <th>Tamaño</th>
                     <th>Fecha</th>
+                    <th>Descargar</th>
                 </tr>
                 <?php foreach ($archivos as $f): ?>
                     <?php $nombre = basename($f); ?>
@@ -119,6 +145,12 @@ usort($archivos, function ($a, $b) {
                         <td><?= htmlspecialchars($nombre) ?></td>
                         <td><?= number_format(filesize($f) / 1024, 1) ?> KB</td>
                         <td><?= date('d/m/Y H:i:s', filemtime($f)) ?></td>
+                        <td>
+                            <a class="btn-descargar"
+                                href="descargar_backup.php?archivo=<?= urlencode($nombre) ?>">
+                                ⬇ Descargar
+                            </a>
+                        </td>
                     </tr>
                 <?php endforeach; ?>
             </table>
