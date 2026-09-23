@@ -455,6 +455,13 @@ $nombre_completo = $row['nom_apellido'] ?? '';
                 </a>
 
 
+
+                <a href="00_administracion/pasajeros_de_calle/listado.php" target="_blank" class="tarjeta">
+                    <i class="fas fa-person-walking"></i>
+                    <span class="titulo">PASAJEROS DE CALLE</span>
+                    <span class="link-externo">🔗</span>
+                </a>
+
                 <a href="01_mapeo/recibir.php" target="_blank" class="tarjeta">
                     <i class="fas fa-arrow-down"></i>
                     <span class="titulo">RECIBIR</span>
