@@ -454,7 +454,10 @@ $nombre_completo = $row['nom_apellido'] ?? '';
 
                 </a>
 
-
+                <a href="00_administracion/pasajeros_de_calle/listado_viajes_app.php" class="tarjeta">
+                    <i class="fas fa-taxi"></i>
+                    <span class="titulo">VIAJES APP</span>
+                </a>
 
                 <a href="00_administracion/pasajeros_de_calle/listado.php" target="_blank" class="tarjeta">
                     <i class="fas fa-person-walking"></i>

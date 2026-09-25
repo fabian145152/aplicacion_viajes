@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'home.dart';
 import '../servicios/api_service.dart';
 import 'registro.dart';
 
@@ -18,7 +19,7 @@ class _LoginPageState extends State<LoginPage> {
   bool _verPass = false;
 
   // ⚠️ Número de WhatsApp de la empresa
-  static const String _whatsappEmpresa = '5491169356236';
+  static const String _whatsappEmpresa = '5491121637073';
 
   Future<void> _login() async {
     final email = _emailCtrl.text.trim();
@@ -36,8 +37,17 @@ class _LoginPageState extends State<LoginPage> {
 
       if (r['res'] == 'OK') {
         if (!mounted) return;
-        _msg('¡Bienvenido ${r['nombre_apellido']}!');
-        // TODO: navegar a la pantalla principal
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => HomePage(
+              id: (r['id'] as num).toInt(),
+              nombre: r['nombre_apellido']?.toString() ?? '',
+              email: r['email']?.toString() ?? email,
+              celular: r['celular']?.toString() ?? '',
+            ),
+          ),
+        );
       } else if (r['res'] == 'NO_CONFIRMADO') {
         _msg(r['msg'] ?? 'Cuenta no confirmada');
       } else {
@@ -73,11 +83,9 @@ class _LoginPageState extends State<LoginPage> {
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                'Ingresá el email con el que te registraste. '
-                'Te vamos a contactar por WhatsApp con una contraseña temporal.',
+                'Ingresá el email con el que te registraste.',
                 style: TextStyle(fontSize: 13, color: Colors.black54),
               ),
               const SizedBox(height: 15),
@@ -113,17 +121,18 @@ class _LoginPageState extends State<LoginPage> {
 
     if (email == null || email.isEmpty) return;
 
-    // 2) Llamar al server
     setState(() => _loading = true);
+
     try {
       final r = await ApiService.recuperarPassword(email: email);
+
+      if (!mounted) return;
 
       if (r['res'] != 'OK') {
         _msg(r['msg'] ?? 'No se pudo procesar la solicitud');
         return;
       }
 
-      // Caso "email no existe" (server no revela, pero no trae datos)
       if (r['nueva_password'] == null) {
         await _mostrarInfo(
           titulo: 'Solicitud enviada',
@@ -134,24 +143,23 @@ class _LoginPageState extends State<LoginPage> {
         return;
       }
 
-      // 3) Caso OK: hay nueva contraseña temporal
       final nuevaPass = r['nueva_password'].toString();
       final nombre = r['nombre_apellido']?.toString() ?? '';
       final emailUser = r['email']?.toString() ?? email;
 
-      // 3.a) Aviso al usuario
+      // Mostrar diálogo
       await _mostrarInfo(
         titulo: 'Solicitud enviada',
         mensaje:
             'Se generó una contraseña temporal.\n\n'
-            'Vas a ser redirigido a WhatsApp para avisarle a la empresa, '
-            'y ellos te van a pasar la nueva contraseña.',
+            'Vas a ser redirigido a WhatsApp para avisarle a la empresa.',
         icono: Icons.mark_email_read,
         color: Colors.green,
       );
+
       if (!mounted) return;
 
-      // 3.b) Abrir WhatsApp a la empresa
+      // Abrir WhatsApp
       await _enviarWhatsAppRecuperacion(
         nombre: nombre,
         email: emailUser,
@@ -206,7 +214,7 @@ class _LoginPageState extends State<LoginPage> {
                 width: 70,
                 height: 70,
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.12),
+                  color: color.withValues(alpha: 0.12),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(icono, color: color, size: 40),
@@ -268,7 +276,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Pasajeros'),
+        title: const Text('Pasajeros Baet'),
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
       ),
@@ -300,9 +308,9 @@ class _LoginPageState extends State<LoginPage> {
               controller: _passCtrl,
               obscureText: !_verPass,
               keyboardType: TextInputType.number,
-              maxLength: 4,
+              maxLength: 8,
               decoration: InputDecoration(
-                labelText: 'Contraseña (4 números)',
+                labelText: 'Contraseña (4 a 8 números)',
                 prefixIcon: const Icon(Icons.lock),
                 border: const OutlineInputBorder(),
                 counterText: '',

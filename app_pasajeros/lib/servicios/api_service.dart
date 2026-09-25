@@ -69,4 +69,68 @@ class ApiService {
     }
     return jsonDecode(resp.body);
   }
+
+  /// Cambia la contraseña de un pasajero.
+  static Future<Map<String, dynamic>> cambiarPassword({
+    required String email,
+    required String passwordActual,
+    required String passwordNueva,
+    required String passwordConfirmar,
+  }) async {
+    final url = Uri.parse('$baseUrl/cambiar_password.php');
+    final body = jsonEncode({
+      'email': email,
+      'password_actual': passwordActual,
+      'password_nueva': passwordNueva,
+      'password_confirmar': passwordConfirmar,
+    });
+
+    final resp = await http
+        .post(url, headers: {"Content-Type": "application/json"}, body: body)
+        .timeout(const Duration(seconds: 15));
+
+    if (resp.statusCode != 200) {
+      return {'res': 'ERROR', 'msg': 'Error ${resp.statusCode}'};
+    }
+    return jsonDecode(resp.body);
+  }
+
+  /// Crea un viaje nuevo para un pasajero.
+  static Future<Map<String, dynamic>> crearViaje({
+    required int pasajeroId,
+    required String direccion,
+    required int cp,
+  }) async {
+    final url = Uri.parse('$baseUrl/crear_viaje.php');
+    final body = jsonEncode({
+      'pasajero_id': pasajeroId,
+      'direccion': direccion,
+      'cp': cp,
+    });
+
+    final resp = await http
+        .post(url, headers: {"Content-Type": "application/json"}, body: body)
+        .timeout(const Duration(seconds: 15));
+
+    if (resp.statusCode != 200) {
+      return {'res': 'ERROR', 'msg': 'Error ${resp.statusCode}'};
+    }
+    return jsonDecode(resp.body);
+  }
+
+  /// Lista los viajes de un pasajero.
+  static Future<Map<String, dynamic>> listarViajes({
+    required int pasajeroId,
+  }) async {
+    final url = Uri.parse(
+      '$baseUrl/listar_viajes_pasajero.php?pasajero_id=$pasajeroId',
+    );
+
+    final resp = await http.get(url).timeout(const Duration(seconds: 15));
+
+    if (resp.statusCode != 200) {
+      return {'res': 'ERROR', 'msg': 'Error ${resp.statusCode}'};
+    }
+    return jsonDecode(resp.body);
+  }
 }

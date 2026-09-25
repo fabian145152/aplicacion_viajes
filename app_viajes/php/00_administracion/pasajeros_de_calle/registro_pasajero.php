@@ -17,7 +17,7 @@ if ($nombre_apellido === '') $errores[] = 'Falta nombre y apellido.';
 if ($email === '')           $errores[] = 'Falta el email.';
 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) $errores[] = 'Email inválido.';
 if ($password === '')        $errores[] = 'Falta la contraseña.';
-if (!preg_match('/^\d{4}$/', $password)) $errores[] = 'La contraseña debe ser de 4 números.';
+if (!preg_match('/^\d{4,8}$/', $password)) $errores[] = 'La contraseña debe tener entre 4 y 8 números.';
 if ($celular === '')         $errores[] = 'Falta el celular.';
 if (!preg_match('/^\d{8,15}$/', $celular)) $errores[] = 'Celular inválido (solo números, 8 a 15 dígitos).';
 

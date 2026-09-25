@@ -43,9 +43,7 @@ if ((int)$row['confirmado'] !== 1) {
 }
 
 // Generar contraseña temporal de 4 dígitos
-$nueva_pass = str_pad((string)random_int(0, 9999), 4, '0', STR_PAD_LEFT);
-
-// Hashear y guardar
+$nueva_pass = str_pad((string)random_int(0, 99999999), 8, '0', STR_PAD_LEFT); // Hashear y guardar
 $hash = password_hash($nueva_pass, PASSWORD_BCRYPT);
 $stmt = $pdo->prepare("UPDATE pasajeros_app SET password_hash = :hash WHERE id = :id");
 $stmt->execute([':hash' => $hash, ':id' => $row['id']]);

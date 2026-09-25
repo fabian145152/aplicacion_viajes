@@ -38,8 +38,8 @@ class _RegistroPageState extends State<RegistroPage> {
       _msg('Completá todos los campos');
       return;
     }
-    if (!RegExp(r'^\d{4}$').hasMatch(pass)) {
-      _msg('La contraseña debe ser de 4 números');
+    if (!RegExp(r'^\d{4,8}$').hasMatch(pass)) {
+      _msg('La contraseña debe tener entre 4 y 8 números');
       return;
     }
     if (pass != passConfirm) {
@@ -103,7 +103,7 @@ class _RegistroPageState extends State<RegistroPage> {
                 width: 80,
                 height: 80,
                 decoration: BoxDecoration(
-                  color: Colors.green.withOpacity(0.12),
+                  color: Colors.green.withValues(alpha: 0.12),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
@@ -233,9 +233,9 @@ class _RegistroPageState extends State<RegistroPage> {
               controller: _passCtrl,
               obscureText: !_verPass,
               keyboardType: TextInputType.number,
-              maxLength: 4,
+              maxLength: 8,
               decoration: InputDecoration(
-                labelText: 'Contraseña (4 números)',
+                labelText: 'Contraseña (4 a 8 números)',
                 prefixIcon: const Icon(Icons.lock),
                 border: const OutlineInputBorder(),
                 counterText: '',
@@ -253,9 +253,9 @@ class _RegistroPageState extends State<RegistroPage> {
               controller: _passConfirmCtrl,
               obscureText: !_verPassConfirm,
               keyboardType: TextInputType.number,
-              maxLength: 4,
+              maxLength: 8,
               decoration: InputDecoration(
-                labelText: 'Repetir contraseña',
+                labelText: 'Repetir contraseña (4 a 8 números)',
                 prefixIcon: const Icon(Icons.lock_outline),
                 border: const OutlineInputBorder(),
                 counterText: '',
